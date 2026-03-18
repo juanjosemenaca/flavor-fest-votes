@@ -14,7 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      access_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          label: string | null
+          used: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          used?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          used?: boolean
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contest_settings: {
+        Row: {
+          contest_name: string
+          created_at: string
+          id: string
+          results_published: boolean
+          updated_at: string
+          voting_open: boolean
+        }
+        Insert: {
+          contest_name?: string
+          created_at?: string
+          id?: string
+          results_published?: boolean
+          updated_at?: string
+          voting_open?: boolean
+        }
+        Update: {
+          contest_name?: string
+          created_at?: string
+          id?: string
+          results_published?: boolean
+          updated_at?: string
+          voting_open?: boolean
+        }
+        Relationships: []
+      }
+      dishes: {
+        Row: {
+          author: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          access_code_id: string
+          category_id: string
+          created_at: string
+          dish_id: string
+          id: string
+          liked: boolean
+        }
+        Insert: {
+          access_code_id: string
+          category_id: string
+          created_at?: string
+          dish_id: string
+          id?: string
+          liked: boolean
+        }
+        Update: {
+          access_code_id?: string
+          category_id?: string
+          created_at?: string
+          dish_id?: string
+          id?: string
+          liked?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_dish_id_fkey"
+            columns: ["dish_id"]
+            isOneToOne: false
+            referencedRelation: "dishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
