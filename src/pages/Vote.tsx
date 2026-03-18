@@ -12,11 +12,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import GildaLogo from "@/components/GildaLogo";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useI18n } from "@/i18n";
 import { ArrowLeft, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
 const Vote = () => {
+  const { t } = useI18n();
   const [code, setCode] = useState("");
   const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
@@ -112,11 +115,15 @@ const Vote = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["votes", accessCodeId] });
       queryClient.invalidateQueries({ queryKey: ["access-codes"] });
-      const savedToast = toast({ title: "Votos enviados" });
+      const savedToast = toast({ title: t("vote.votesSentTitle") });
       setTimeout(() => savedToast.dismiss(), 2000);
     },
     onError: () => {
-      toast({ title: "Error al enviar votos", description: "Inténtalo de nuevo", variant: "destructive" });
+      toast({
+        title: t("vote.sendErrorTitle"),
+        description: t("vote.sendErrorDescription"),
+        variant: "destructive",
+      });
     },
   });
 
@@ -127,18 +134,26 @@ const Vote = () => {
       const result = await validateAccessCode(code);
       if (result.ok) {
         setAccessCodeId(result.data.id);
-        toast({ title: "¡Bienvenido!", description: "Elige un pintxo por cada categoría" });
+        toast({ title: t("vote.welcomeTitle"), description: t("vote.welcomeDescription") });
       } else if (result.reason === "used") {
         toast({
-          title: "Código ya utilizado",
-          description: "Este código ya envió sus votos y no permite rectificaciones.",
+          title: t("vote.codeUsedTitle"),
+          description: t("vote.codeUsedDescription"),
           variant: "destructive",
         });
       } else {
-        toast({ title: "Código inválido", description: "Verifica tu código de acceso", variant: "destructive" });
+        toast({
+          title: t("vote.invalidCodeTitle"),
+          description: t("vote.invalidCodeDescription"),
+          variant: "destructive",
+        });
       }
     } catch {
-      toast({ title: "Error", description: "No se pudo validar el código", variant: "destructive" });
+      toast({
+        title: t("common.error"),
+        description: t("vote.validationErrorDescription"),
+        variant: "destructive",
+      });
     }
     setValidating(false);
   };
@@ -153,8 +168,8 @@ const Vote = () => {
   const handleSubmitVotes = () => {
     if (!allCategoriesSelected) {
       toast({
-        title: "Faltan categorías por votar",
-        description: `Debes seleccionar un pintxo en las ${categories.length} categorías antes de enviar.`,
+        title: t("vote.missingCategoriesTitle"),
+        description: t("vote.missingCategoriesDescription", { total: categories.length }),
         variant: "destructive",
       });
       return;
@@ -167,11 +182,11 @@ const Vote = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center p-8">
           <GildaLogo className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-serif font-bold mb-2">Votación Cerrada</h2>
-          <p className="text-muted-foreground mb-4">La votación ha finalizado. ¡Gracias por participar!</p>
+          <h2 className="text-2xl font-serif font-bold mb-2">{t("vote.closedTitle")}</h2>
+          <p className="text-muted-foreground mb-4">{t("vote.closedDescription")}</p>
           <Link to="/">
             <Button variant="outline" className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Volver al inicio
+              <ArrowLeft className="h-4 w-4" /> {t("nav.backHome")}
             </Button>
           </Link>
         </Card>
@@ -184,15 +199,18 @@ const Vote = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8">
           <div className="text-center mb-6">
+            <div className="mb-3 flex justify-center">
+              <LanguageSelector />
+            </div>
             <GildaLogo className="h-12 w-12 text-primary mx-auto mb-3" />
-            <h2 className="text-2xl font-serif font-bold">Accede para Votar</h2>
+            <h2 className="text-2xl font-serif font-bold">{t("vote.accessTitle")}</h2>
             <p className="text-muted-foreground mt-2">
-              Introduce tu código de acceso para votar
+              {t("vote.accessDescription")}
             </p>
           </div>
           <div className="space-y-4">
             <Input
-              placeholder="Tu código (ej: ABC123)"
+              placeholder={t("vote.codePlaceholder")}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && handleValidateCode()}
@@ -200,12 +218,12 @@ const Vote = () => {
               maxLength={6}
             />
             <Button onClick={handleValidateCode} disabled={validating || !code.trim()} className="w-full">
-              {validating ? "Validando..." : "Acceder"}
+              {validating ? t("vote.validating") : t("vote.access")}
             </Button>
           </div>
           <div className="mt-4 text-center">
             <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
-              ← Volver al inicio
+              ← {t("nav.backHome")}
             </Link>
           </div>
         </Card>
@@ -223,18 +241,19 @@ const Vote = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <h1 className="text-xl font-serif font-bold">Votar</h1>
+            <h1 className="text-xl font-serif font-bold">{t("vote.headerTitle")}</h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <LanguageSelector />
             <Check className="h-4 w-4 text-success" />
-            {selectedCount}/{categories.length} categorías seleccionadas
+            {t("vote.selectedCount", { selected: selectedCount, total: categories.length })}
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
         {dishes.length === 0 ? (
-          <p className="text-center text-muted-foreground py-20">No hay pintxos para votar</p>
+          <p className="text-center text-muted-foreground py-20">{t("vote.noDishes")}</p>
         ) : (
           <div className="space-y-8">
             <div className="flex justify-end">
@@ -242,7 +261,7 @@ const Vote = () => {
                 onClick={handleSubmitVotes}
                 disabled={submitVotesMutation.isPending || !hasChanges || !allCategoriesSelected}
               >
-                {submitVotesMutation.isPending ? "Enviando..." : "Enviar votos"}
+                {submitVotesMutation.isPending ? t("common.sending") : t("common.sendVotes")}
               </Button>
             </div>
 
@@ -260,7 +279,7 @@ const Vote = () => {
                       </div>
                       {selectedDishId && (
                         <span className="text-xs px-2 py-1 rounded bg-success/20 text-success font-semibold">
-                          Selección hecha (editable)
+                          {t("vote.selectionDone")}
                         </span>
                       )}
                     </div>
@@ -291,7 +310,7 @@ const Vote = () => {
                             </div>
                             <div className="p-4 space-y-2">
                               <p className="font-serif font-bold text-lg leading-tight">{dish.name}</p>
-                              <p className="text-sm text-primary font-medium">por {dish.author}</p>
+                              <p className="text-sm text-primary font-medium">{t("common.by", { author: dish.author })}</p>
                               {dish.description && (
                                 <p className="text-xs text-muted-foreground line-clamp-2">{dish.description}</p>
                               )}
@@ -301,7 +320,7 @@ const Vote = () => {
                                 onClick={() => toggleSelection(cat.id, dish.id)}
                                 disabled={submitVotesMutation.isPending}
                               >
-                                {isSelected ? "Deseleccionar" : "Elegir este pintxo"}
+                                {isSelected ? t("vote.deselect") : t("vote.choose")}
                               </Button>
                             </div>
                           </div>
@@ -318,7 +337,7 @@ const Vote = () => {
                 onClick={handleSubmitVotes}
                 disabled={submitVotesMutation.isPending || !hasChanges || !allCategoriesSelected}
               >
-                {submitVotesMutation.isPending ? "Enviando..." : "Enviar votos"}
+                {submitVotesMutation.isPending ? t("common.sending") : t("common.sendVotes")}
               </Button>
             </div>
           </div>

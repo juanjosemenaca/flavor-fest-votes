@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchContestSettings, fetchDishes, fetchCategories, fetchAllVotes } from "@/lib/supabase-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useI18n } from "@/i18n";
 import { ArrowLeft, Trophy, Medal } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -9,6 +11,7 @@ const MEDAL_COLORS = ["text-yellow-500", "text-gray-400", "text-amber-700"];
 const MEDAL_LABELS = ["🥇", "🥈", "🥉"];
 
 const Results = () => {
+  const { t } = useI18n();
   const { data: settings } = useQuery({
     queryKey: ["contest-settings"],
     queryFn: fetchContestSettings,
@@ -35,11 +38,11 @@ const Results = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center p-8">
           <Trophy className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-serif font-bold mb-2">Resultados no disponibles</h2>
-          <p className="text-muted-foreground mb-4">Los resultados se publicarán cuando el organizador lo decida</p>
+          <h2 className="text-2xl font-serif font-bold mb-2">{t("results.unavailableTitle")}</h2>
+          <p className="text-muted-foreground mb-4">{t("results.unavailableDescription")}</p>
           <Link to="/">
             <Button variant="outline" className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Volver
+              <ArrowLeft className="h-4 w-4" /> {t("nav.back")}
             </Button>
           </Link>
         </Card>
@@ -65,12 +68,15 @@ const Results = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-3">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
           <Link to="/">
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <Trophy className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-serif font-bold">Resultados</h1>
+          <h1 className="text-xl font-serif font-bold">{t("results.title")}</h1>
+          </div>
+          <LanguageSelector />
         </div>
       </header>
 
@@ -87,7 +93,7 @@ const Results = () => {
               </CardHeader>
               <CardContent>
                 {ranking.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Sin votos en esta categoría</p>
+                  <p className="text-muted-foreground text-sm">{t("results.noVotesInCategory")}</p>
                 ) : (
                   <div className="space-y-3">
                     {ranking.map((r, i) => (
@@ -98,7 +104,7 @@ const Results = () => {
                         )}
                         <div className="flex-1">
                           <p className="font-serif font-bold">{r.dish!.name}</p>
-                          <p className="text-xs text-muted-foreground">por {r.dish!.author}</p>
+                          <p className="text-xs text-muted-foreground">{t("common.by", { author: r.dish!.author })}</p>
                         </div>
                         <span className="font-bold text-primary">{r.likes} ❤️</span>
                       </div>

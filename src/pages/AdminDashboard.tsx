@@ -18,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GildaLogo from "@/components/GildaLogo";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useI18n } from "@/i18n";
 import {
   Plus,
   Minus,
@@ -33,6 +35,7 @@ import { toast } from "@/hooks/use-toast";
 import type { Session } from "@supabase/supabase-js";
 
 const AdminDashboard = () => {
+  const { t } = useI18n();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [showOriginalByCategory, setShowOriginalByCategory] = useState<Record<string, boolean>>({});
@@ -42,12 +45,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
-      if (!s) navigate("/admin");
+      if (!s) navigate("/");
       setLoading(false);
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
-      if (!s) navigate("/admin");
+      if (!s) navigate("/");
       setLoading(false);
     });
     return () => subscription.unsubscribe();
@@ -98,9 +101,9 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ["dishes"] });
       setNewDish({ name: "", author: "", description: "" });
       setDishPhoto(null);
-      toast({ title: "Plato añadido" });
+      toast({ title: t("admin.dishes.added") });
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
   const deleteDishMutation = useMutation({
@@ -110,7 +113,7 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dishes"] });
-      toast({ title: "Plato eliminado" });
+      toast({ title: t("admin.dishes.deleted") });
     },
   });
 
@@ -129,9 +132,9 @@ const AdminDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       setNewCategory({ name: "", description: "" });
-      toast({ title: "Categoría añadida" });
+      toast({ title: t("admin.categories.added") });
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
   const deleteCategoryMutation = useMutation({
@@ -155,9 +158,9 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-codes"] });
-      toast({ title: `${numCodes} códigos generados` });
+      toast({ title: t("admin.codes.generated", { count: numCodes }) });
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
   const reopenCodeMutation = useMutation({
@@ -177,9 +180,9 @@ const AdminDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-codes"] });
       queryClient.invalidateQueries({ queryKey: ["all-votes"] });
-      toast({ title: "Código reabierto", description: "Ya puede volver a votar desde cero." });
+      toast({ title: t("admin.codes.reopenedTitle"), description: t("admin.codes.reopenedDescription") });
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
   const adjustVoteMutation = useMutation({
@@ -202,7 +205,7 @@ const AdminDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vote-adjustments"] });
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
   // --- Settings ---
@@ -226,13 +229,13 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/admin");
+    navigate("/");
   };
 
   const copyAllCodes = () => {
     const text = accessCodes.map((c) => c.code).join("\n");
     navigator.clipboard.writeText(text);
-    toast({ title: "Códigos copiados al portapapeles" });
+    toast({ title: t("admin.codes.copied") });
   };
 
   // Results summary (real votes from users only)
@@ -257,7 +260,7 @@ const AdminDashboard = () => {
     return summary;
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">{t("admin.loading")}</div>;
   if (!session) return null;
 
   const rawVoteSummary = getRawVoteSummary();
@@ -269,45 +272,48 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <GildaLogo className="h-7 w-7 text-primary" />
-            <h1 className="text-xl font-serif font-bold">Admin</h1>
+            <h1 className="text-xl font-serif font-bold">{t("admin.title")}</h1>
           </div>
-          <Button variant="ghost" onClick={handleLogout} className="gap-2">
-            <LogOut className="h-4 w-4" /> Salir
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <Button variant="ghost" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" /> {t("admin.logout")}
+            </Button>
+          </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="dishes">
           <TabsList className="mb-6">
-            <TabsTrigger value="dishes" className="gap-1"><GildaLogo className="h-4 w-4" /> Platos</TabsTrigger>
-            <TabsTrigger value="categories" className="gap-1"><Tag className="h-4 w-4" /> Categorías</TabsTrigger>
-            <TabsTrigger value="codes" className="gap-1"><KeyRound className="h-4 w-4" /> Códigos</TabsTrigger>
-            <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> Resultados</TabsTrigger>
-            <TabsTrigger value="settings" className="gap-1"><Settings className="h-4 w-4" /> Ajustes</TabsTrigger>
+            <TabsTrigger value="dishes" className="gap-1"><GildaLogo className="h-4 w-4" /> {t("admin.tab.dishes")}</TabsTrigger>
+            <TabsTrigger value="categories" className="gap-1"><Tag className="h-4 w-4" /> {t("admin.tab.categories")}</TabsTrigger>
+            <TabsTrigger value="codes" className="gap-1"><KeyRound className="h-4 w-4" /> {t("admin.tab.codes")}</TabsTrigger>
+            <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> {t("admin.tab.results")}</TabsTrigger>
+            <TabsTrigger value="settings" className="gap-1"><Settings className="h-4 w-4" /> {t("admin.tab.settings")}</TabsTrigger>
           </TabsList>
 
           {/* DISHES TAB */}
           <TabsContent value="dishes" className="space-y-6">
             <Card>
-              <CardHeader><CardTitle className="font-serif">Añadir Plato</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="font-serif">{t("admin.dishes.addTitle")}</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Nombre del plato</Label>
+                    <Label>{t("admin.dishes.name")}</Label>
                     <Input value={newDish.name} onChange={(e) => setNewDish({ ...newDish, name: e.target.value })} />
                   </div>
                   <div>
-                    <Label>Autor / Chef</Label>
+                    <Label>{t("admin.dishes.author")}</Label>
                     <Input value={newDish.author} onChange={(e) => setNewDish({ ...newDish, author: e.target.value })} />
                   </div>
                 </div>
                 <div>
-                  <Label>Descripción</Label>
+                  <Label>{t("admin.dishes.description")}</Label>
                   <Textarea value={newDish.description} onChange={(e) => setNewDish({ ...newDish, description: e.target.value })} />
                 </div>
                 <div>
-                  <Label>Foto del plato</Label>
+                  <Label>{t("admin.dishes.photo")}</Label>
                   <div className="space-y-2">
                     <Input type="file" accept="image/*" onChange={(e) => setDishPhoto(e.target.files?.[0] || null)} />
                     <input
@@ -324,17 +330,17 @@ const AdminDashboard = () => {
                       className="w-full"
                       onClick={() => cameraInputRef.current?.click()}
                     >
-                      Usar camara (si disponible)
+                      {t("admin.dishes.useCamera")}
                     </Button>
                     {dishPhoto && (
                       <p className="text-xs text-muted-foreground">
-                        Foto seleccionada: {dishPhoto.name}
+                        {t("admin.dishes.photoSelected", { name: dishPhoto.name })}
                       </p>
                     )}
                   </div>
                 </div>
                 <Button onClick={() => addDishMutation.mutate()} disabled={!newDish.name || !newDish.author || addDishMutation.isPending} className="gap-2">
-                  <Plus className="h-4 w-4" /> Añadir Plato
+                  <Plus className="h-4 w-4" /> {t("admin.dishes.addButton")}
                 </Button>
               </CardContent>
             </Card>
@@ -349,9 +355,9 @@ const AdminDashboard = () => {
                   )}
                   <CardContent className="p-4">
                     <h3 className="font-serif font-bold">{dish.name}</h3>
-                    <p className="text-sm text-muted-foreground">por {dish.author}</p>
+                    <p className="text-sm text-muted-foreground">{t("common.by", { author: dish.author })}</p>
                     <Button variant="destructive" size="sm" className="mt-2 gap-1" onClick={() => deleteDishMutation.mutate(dish.id)}>
-                      <Trash2 className="h-3 w-3" /> Eliminar
+                      <Trash2 className="h-3 w-3" /> {t("common.delete")}
                     </Button>
                   </CardContent>
                 </Card>
@@ -362,18 +368,18 @@ const AdminDashboard = () => {
           {/* CATEGORIES TAB */}
           <TabsContent value="categories" className="space-y-6">
             <Card>
-              <CardHeader><CardTitle className="font-serif">Añadir Categoría</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="font-serif">{t("admin.categories.addTitle")}</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Nombre</Label>
-                  <Input value={newCategory.name} onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })} placeholder="Ej: Mejor Sabor" />
+                  <Label>{t("admin.categories.name")}</Label>
+                  <Input value={newCategory.name} onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })} placeholder={t("admin.categories.placeholder")} />
                 </div>
                 <div>
-                  <Label>Descripción (opcional)</Label>
+                  <Label>{t("admin.categories.description")}</Label>
                   <Input value={newCategory.description} onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })} />
                 </div>
                 <Button onClick={() => addCategoryMutation.mutate()} disabled={!newCategory.name || addCategoryMutation.isPending} className="gap-2">
-                  <Plus className="h-4 w-4" /> Añadir Categoría
+                  <Plus className="h-4 w-4" /> {t("admin.categories.addButton")}
                 </Button>
               </CardContent>
             </Card>
@@ -396,19 +402,19 @@ const AdminDashboard = () => {
           {/* CODES TAB */}
           <TabsContent value="codes" className="space-y-6">
             <Card>
-              <CardHeader><CardTitle className="font-serif">Generar Códigos de Acceso</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="font-serif">{t("admin.codes.generateTitle")}</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-end gap-4">
                   <div>
-                    <Label>Cantidad</Label>
+                    <Label>{t("admin.codes.quantity")}</Label>
                     <Input type="number" min={1} max={100} value={numCodes} onChange={(e) => setNumCodes(Number(e.target.value))} className="w-24" />
                   </div>
                   <Button onClick={() => generateCodesMutation.mutate()} disabled={generateCodesMutation.isPending} className="gap-2">
-                    <Plus className="h-4 w-4" /> Generar
+                    <Plus className="h-4 w-4" /> {t("admin.codes.generateButton")}
                   </Button>
                   {accessCodes.length > 0 && (
                     <Button variant="outline" onClick={copyAllCodes} className="gap-2">
-                      <Copy className="h-4 w-4" /> Copiar todos
+                      <Copy className="h-4 w-4" /> {t("admin.codes.copyAll")}
                     </Button>
                   )}
                 </div>
@@ -435,7 +441,7 @@ const AdminDashboard = () => {
                         onClick={() => reopenCodeMutation.mutate(c.id)}
                         disabled={reopenCodeMutation.isPending}
                       >
-                        {reopenCodeMutation.isPending ? "Reabriendo..." : "Rectificar"}
+                        {reopenCodeMutation.isPending ? t("admin.codes.reopening") : t("admin.codes.reopen")}
                       </Button>
                     )}
                   </div>
@@ -447,7 +453,7 @@ const AdminDashboard = () => {
           {/* RESULTS TAB */}
           <TabsContent value="results" className="space-y-6">
             <div className="text-sm text-muted-foreground mb-4">
-              Total de votos: {votes.length} | Likes: {votes.filter((v) => v.liked).length}
+              {t("admin.results.summary", { total: votes.length, likes: votes.filter((v) => v.liked).length })}
             </div>
             {categories.map((cat) => {
               const showingOriginal = !!showOriginalByCategory[cat.id];
@@ -477,18 +483,18 @@ const AdminDashboard = () => {
                           }))
                         }
                       >
-                        {showingOriginal ? "Mostrar votos ajustados" : "mostrar votos legales"}
+                        {showingOriginal ? t("admin.results.showAdjusted") : t("admin.results.showLegal")}
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
                     {showingOriginal && (
                       <p className="text-xs text-muted-foreground mb-3">
-                        Mostrando solo votos reales de usuarios (sin ajustes manuales del admin).
+                        {t("admin.results.showingLegalHint")}
                       </p>
                     )}
                     {dishes.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Sin votos</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.results.noVotes")}</p>
                     ) : (
                       <div className="space-y-2">
                         {ranked.map((r, i) => (
@@ -552,15 +558,15 @@ const AdminDashboard = () => {
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Votación abierta</p>
-                    <p className="text-sm text-muted-foreground">Permite que los votantes emitan sus votos</p>
+                    <p className="font-medium">{t("admin.settings.votingOpenTitle")}</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.settings.votingOpenDescription")}</p>
                   </div>
                   <Switch checked={settings?.voting_open ?? true} onCheckedChange={(v) => toggleVotingMutation.mutate(v)} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Publicar resultados</p>
-                    <p className="text-sm text-muted-foreground">Hace visibles los resultados en la página pública</p>
+                    <p className="font-medium">{t("admin.settings.publishResultsTitle")}</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.settings.publishResultsDescription")}</p>
                   </div>
                   <Switch checked={settings?.results_published ?? false} onCheckedChange={(v) => toggleResultsMutation.mutate(v)} />
                 </div>

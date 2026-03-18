@@ -1,20 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { fetchDishes, fetchCategories, fetchContestSettings } from "@/lib/supabase-helpers";
+import { fetchDishes, fetchContestSettings } from "@/lib/supabase-helpers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import GildaLogo from "@/components/GildaLogo";
+import LanguageSelector from "@/components/LanguageSelector";
+import { useI18n } from "@/i18n";
 import { Trophy, LogIn } from "lucide-react";
 
 const Index = () => {
+  const { t } = useI18n();
   const { data: dishes = [] } = useQuery({
     queryKey: ["dishes"],
     queryFn: fetchDishes,
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
   });
 
   const { data: settings } = useQuery({
@@ -38,23 +36,24 @@ const Index = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSelector />
             {settings?.results_published && (
               <Link to="/resultados">
                 <Button variant="outline" className="gap-2">
                   <Trophy className="h-4 w-4" />
-                  Resultados
+                  {t("nav.results")}
                 </Button>
               </Link>
             )}
             <Link to="/votar">
               <Button className="gap-2">
                 <LogIn className="h-4 w-4" />
-                Votar
+                {t("nav.vote")}
               </Button>
             </Link>
             <Link to="/admin">
               <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
-                Admin
+                {t("nav.admin")}
               </Button>
             </Link>
           </div>
@@ -65,10 +64,10 @@ const Index = () => {
       <section className="py-16 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-serif font-bold text-foreground mb-4 animate-fade-in">
-            Los pintxos más locos
+            {t("index.heroTitle")}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            Descubre los pintxos que compiten en AITORTILLA y vota sin piedad
+            {t("index.heroSubtitle")}
           </p>
         </div>
       </section>
@@ -79,10 +78,10 @@ const Index = () => {
           <div className="text-center py-20">
             <GildaLogo className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-xl text-muted-foreground font-serif">
-              Aún no hay platos registrados
+              {t("index.emptyTitle")}
             </p>
             <p className="text-muted-foreground mt-2">
-              Los platos aparecerán aquí cuando el organizador los publique
+              {t("index.emptySubtitle")}
             </p>
           </div>
         ) : (
@@ -112,7 +111,7 @@ const Index = () => {
                     {dish.name}
                   </h3>
                   <p className="text-sm text-primary font-medium mb-2">
-                    por {dish.author}
+                    {t("common.by", { author: dish.author })}
                   </p>
                   {dish.description && (
                     <p className="text-sm text-muted-foreground line-clamp-3">
@@ -129,7 +128,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>
-          🍽️ {contestName} — que gane el mejor pintxo
+          🍽️ {contestName} — {t("index.footerMotto")}
         </p>
       </footer>
     </div>
