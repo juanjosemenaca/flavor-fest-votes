@@ -1,17 +1,18 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   validateAccessCode,
   fetchDishes,
   fetchCategories,
   fetchVotesForCode,
-  submitVote,
   fetchContestSettings,
 } from "@/lib/supabase-helpers";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChefHat, ThumbsUp, ThumbsDown, ArrowLeft, Check } from "lucide-react";
+import GildaLogo from "@/components/GildaLogo";
+import { ArrowLeft, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
@@ -19,6 +20,7 @@ const Vote = () => {
   const [code, setCode] = useState("");
   const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
+  const [selectedByCategory, setSelectedByCategory] = useState<Record<string, string | null>>({});
   const queryClient = useQueryClient();
 
   const { data: settings } = useQuery({
@@ -44,21 +46,77 @@ const Vote = () => {
     enabled: !!accessCodeId,
   });
 
-  const voteMutation = useMutation({
-    mutationFn: ({
-      dishId,
-      categoryId,
-      liked,
-    }: {
-      dishId: string;
-      categoryId: string;
-      liked: boolean;
-    }) => submitVote(accessCodeId!, dishId, categoryId, liked),
+  useEffect(() => {
+    if (!accessCodeId) return;
+
+    const nextSelection: Record<string, string | null> = {};
+    categories.forEach((cat) => {
+      nextSelection[cat.id] = null;
+    });
+    existingVotes.forEach((vote) => {
+      nextSelection[vote.category_id] = vote.dish_id;
+    });
+
+    setSelectedByCategory(nextSelection);
+  }, [accessCodeId, categories, existingVotes]);
+
+  const existingByCategory = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    categories.forEach((cat) => {
+      map[cat.id] = null;
+    });
+    existingVotes.forEach((vote) => {
+      map[vote.category_id] = vote.dish_id;
+    });
+    return map;
+  }, [categories, existingVotes]);
+
+  const selectedCount = categories.filter((cat) => !!selectedByCategory[cat.id]).length;
+  const allCategoriesSelected = categories.length > 0 && selectedCount === categories.length;
+  const hasChanges = categories.some(
+    (cat) => (selectedByCategory[cat.id] ?? null) !== (existingByCategory[cat.id] ?? null),
+  );
+
+  const submitVotesMutation = useMutation({
+    mutationFn: async () => {
+      if (!accessCodeId) return;
+
+      const selectedEntries = Object.entries(selectedByCategory).filter(([, dishId]) => !!dishId);
+
+      if (selectedEntries.length > 0) {
+        const payload = selectedEntries.map(([categoryId, dishId]) => ({
+          access_code_id: accessCodeId,
+          category_id: categoryId,
+          dish_id: dishId as string,
+          liked: true,
+        }));
+        const { error: upsertError } = await supabase
+          .from("votes")
+          .upsert(payload, { onConflict: "access_code_id,category_id" });
+        if (upsertError) throw upsertError;
+      }
+
+      const categoriesToDelete = Object.entries(selectedByCategory)
+        .filter(([, dishId]) => !dishId)
+        .map(([categoryId]) => categoryId);
+
+      if (categoriesToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("votes")
+          .delete()
+          .eq("access_code_id", accessCodeId)
+          .in("category_id", categoriesToDelete);
+        if (deleteError) throw deleteError;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["votes", accessCodeId] });
+      queryClient.invalidateQueries({ queryKey: ["access-codes"] });
+      const savedToast = toast({ title: "Votos enviados" });
+      setTimeout(() => savedToast.dismiss(), 2000);
     },
     onError: () => {
-      toast({ title: "Error al votar", description: "Inténtalo de nuevo", variant: "destructive" });
+      toast({ title: "Error al enviar votos", description: "Inténtalo de nuevo", variant: "destructive" });
     },
   });
 
@@ -67,9 +125,15 @@ const Vote = () => {
     setValidating(true);
     try {
       const result = await validateAccessCode(code);
-      if (result) {
-        setAccessCodeId(result.id);
-        toast({ title: "¡Bienvenido!", description: "Ya puedes votar por tus platos favoritos" });
+      if (result.ok) {
+        setAccessCodeId(result.data.id);
+        toast({ title: "¡Bienvenido!", description: "Elige un pintxo por cada categoría" });
+      } else if (result.reason === "used") {
+        toast({
+          title: "Código ya utilizado",
+          description: "Este código ya envió sus votos y no permite rectificaciones.",
+          variant: "destructive",
+        });
       } else {
         toast({ title: "Código inválido", description: "Verifica tu código de acceso", variant: "destructive" });
       }
@@ -79,14 +143,30 @@ const Vote = () => {
     setValidating(false);
   };
 
-  const getVote = (dishId: string, categoryId: string) =>
-    existingVotes.find((v) => v.dish_id === dishId && v.category_id === categoryId);
+  const toggleSelection = (categoryId: string, dishId: string) => {
+    setSelectedByCategory((prev) => ({
+      ...prev,
+      [categoryId]: prev[categoryId] === dishId ? null : dishId,
+    }));
+  };
+
+  const handleSubmitVotes = () => {
+    if (!allCategoriesSelected) {
+      toast({
+        title: "Faltan categorías por votar",
+        description: `Debes seleccionar un pintxo en las ${categories.length} categorías antes de enviar.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    submitVotesMutation.mutate();
+  };
 
   if (settings && !settings.voting_open) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center p-8">
-          <ChefHat className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <GildaLogo className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-serif font-bold mb-2">Votación Cerrada</h2>
           <p className="text-muted-foreground mb-4">La votación ha finalizado. ¡Gracias por participar!</p>
           <Link to="/">
@@ -104,7 +184,7 @@ const Vote = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8">
           <div className="text-center mb-6">
-            <ChefHat className="h-12 w-12 text-primary mx-auto mb-3" />
+            <GildaLogo className="h-12 w-12 text-primary mx-auto mb-3" />
             <h2 className="text-2xl font-serif font-bold">Accede para Votar</h2>
             <p className="text-muted-foreground mt-2">
               Introduce tu código de acceso para votar
@@ -147,58 +227,81 @@ const Vote = () => {
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Check className="h-4 w-4 text-success" />
-            {existingVotes.length} votos emitidos
+            {selectedCount}/{categories.length} categorías seleccionadas
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
         {dishes.length === 0 ? (
-          <p className="text-center text-muted-foreground py-20">No hay platos para votar</p>
+          <p className="text-center text-muted-foreground py-20">No hay pintxos para votar</p>
         ) : (
           <div className="space-y-8">
-            {dishes.map((dish) => (
-              <Card key={dish.id} className="overflow-hidden">
-                <div className="md:flex">
-                  <div className="md:w-1/3 aspect-[4/3] md:aspect-auto bg-muted">
-                    {dish.image_url ? (
-                      <img src={dish.image_url} alt={dish.name} className="w-full h-full object-cover" loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center min-h-[200px]">
-                        <ChefHat className="h-12 w-12 text-muted-foreground/40" />
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmitVotes}
+                disabled={submitVotesMutation.isPending || !hasChanges || !allCategoriesSelected}
+              >
+                {submitVotesMutation.isPending ? "Enviando..." : "Enviar votos"}
+              </Button>
+            </div>
+
+            {categories.map((cat) => {
+              const selectedDishId = selectedByCategory[cat.id] ?? null;
+              return (
+                <Card key={cat.id}>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-2xl font-serif font-bold">{cat.name}</h3>
+                        {cat.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{cat.description}</p>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <CardContent className="flex-1 p-6">
-                    <h3 className="text-2xl font-serif font-bold mb-1">{dish.name}</h3>
-                    <p className="text-sm text-primary font-medium mb-2">por {dish.author}</p>
-                    {dish.description && (
-                      <p className="text-sm text-muted-foreground mb-4">{dish.description}</p>
-                    )}
-                    <div className="space-y-3">
-                      {categories.map((cat) => {
-                        const vote = getVote(dish.id, cat.id);
+                      {selectedDishId && (
+                        <span className="text-xs px-2 py-1 rounded bg-success/20 text-success font-semibold">
+                          Selección hecha (editable)
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {dishes.map((dish) => {
+                        const isSelected = selectedDishId === dish.id;
                         return (
-                          <div key={cat.id} className="flex items-center justify-between gap-4 bg-muted/50 rounded-lg px-4 py-2">
-                            <span className="text-sm font-medium">{cat.name}</span>
-                            <div className="flex items-center gap-2">
+                          <div
+                            key={`${cat.id}-${dish.id}`}
+                            className={`rounded-lg border overflow-hidden ${
+                              isSelected ? "border-primary ring-1 ring-primary/50" : "border-border"
+                            }`}
+                          >
+                            <div className="aspect-[4/3] bg-muted">
+                              {dish.image_url ? (
+                                <img
+                                  src={dish.image_url}
+                                  alt={dish.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <GildaLogo className="h-10 w-10 text-muted-foreground/40" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-4 space-y-2">
+                              <p className="font-serif font-bold text-lg leading-tight">{dish.name}</p>
+                              <p className="text-sm text-primary font-medium">por {dish.author}</p>
+                              {dish.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">{dish.description}</p>
+                              )}
                               <Button
-                                size="sm"
-                                variant={vote?.liked === true ? "default" : "outline"}
-                                className="gap-1"
-                                onClick={() => voteMutation.mutate({ dishId: dish.id, categoryId: cat.id, liked: true })}
-                                disabled={voteMutation.isPending}
+                                className="w-full mt-2"
+                                variant={isSelected ? "default" : "outline"}
+                                onClick={() => toggleSelection(cat.id, dish.id)}
+                                disabled={submitVotesMutation.isPending}
                               >
-                                <ThumbsUp className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={vote?.liked === false ? "destructive" : "outline"}
-                                className="gap-1"
-                                onClick={() => voteMutation.mutate({ dishId: dish.id, categoryId: cat.id, liked: false })}
-                                disabled={voteMutation.isPending}
-                              >
-                                <ThumbsDown className="h-3.5 w-3.5" />
+                                {isSelected ? "Deseleccionar" : "Elegir este pintxo"}
                               </Button>
                             </div>
                           </div>
@@ -206,9 +309,18 @@ const Vote = () => {
                       })}
                     </div>
                   </CardContent>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmitVotes}
+                disabled={submitVotesMutation.isPending || !hasChanges || !allCategoriesSelected}
+              >
+                {submitVotesMutation.isPending ? "Enviando..." : "Enviar votos"}
+              </Button>
+            </div>
           </div>
         )}
       </div>

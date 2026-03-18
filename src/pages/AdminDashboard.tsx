@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,9 +17,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import GildaLogo from "@/components/GildaLogo";
 import {
-  ChefHat,
   Plus,
+  Minus,
   Trash2,
   LogOut,
   Trophy,
@@ -34,6 +35,7 @@ import type { Session } from "@supabase/supabase-js";
 const AdminDashboard = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showOriginalByCategory, setShowOriginalByCategory] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -55,6 +57,15 @@ const AdminDashboard = () => {
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories, enabled: !!session });
   const { data: settings } = useQuery({ queryKey: ["contest-settings"], queryFn: fetchContestSettings, enabled: !!session });
   const { data: votes = [] } = useQuery({ queryKey: ["all-votes"], queryFn: fetchAllVotes, enabled: !!session });
+  const { data: voteAdjustments = [] } = useQuery({
+    queryKey: ["vote-adjustments"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("vote_adjustments").select("*");
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!session,
+  });
 
   const { data: accessCodes = [] } = useQuery({
     queryKey: ["access-codes"],
@@ -69,6 +80,7 @@ const AdminDashboard = () => {
   // --- Dish Management ---
   const [newDish, setNewDish] = useState({ name: "", author: "", description: "" });
   const [dishPhoto, setDishPhoto] = useState<File | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const addDishMutation = useMutation({
     mutationFn: async () => {
@@ -148,6 +160,51 @@ const AdminDashboard = () => {
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
+  const reopenCodeMutation = useMutation({
+    mutationFn: async (accessCodeId: string) => {
+      const { error: deleteVotesError } = await supabase
+        .from("votes")
+        .delete()
+        .eq("access_code_id", accessCodeId);
+      if (deleteVotesError) throw deleteVotesError;
+
+      const { error: reopenError } = await supabase
+        .from("access_codes")
+        .update({ used: false })
+        .eq("id", accessCodeId);
+      if (reopenError) throw reopenError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["access-codes"] });
+      queryClient.invalidateQueries({ queryKey: ["all-votes"] });
+      toast({ title: "Código reabierto", description: "Ya puede volver a votar desde cero." });
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const adjustVoteMutation = useMutation({
+    mutationFn: async ({
+      dishId,
+      categoryId,
+      delta,
+    }: {
+      dishId: string;
+      categoryId: string;
+      delta: 1 | -1;
+    }) => {
+      const { error } = await supabase.rpc("adjust_vote_delta", {
+        _dish_id: dishId,
+        _category_id: categoryId,
+        _delta: delta,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vote-adjustments"] });
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   // --- Settings ---
   const toggleResultsMutation = useMutation({
     mutationFn: async (published: boolean) => {
@@ -178,8 +235,8 @@ const AdminDashboard = () => {
     toast({ title: "Códigos copiados al portapapeles" });
   };
 
-  // Results summary
-  const getVoteSummary = () => {
+  // Results summary (real votes from users only)
+  const getRawVoteSummary = () => {
     const summary: Record<string, Record<string, number>> = {};
     votes.forEach((v) => {
       if (!v.liked) return;
@@ -189,17 +246,29 @@ const AdminDashboard = () => {
     return summary;
   };
 
+  // Results summary including admin manual adjustments
+  const getAdjustedVoteSummary = (baseSummary: Record<string, Record<string, number>>) => {
+    const summary = structuredClone(baseSummary) as Record<string, Record<string, number>>;
+    voteAdjustments.forEach((adj) => {
+      if (!summary[adj.category_id]) summary[adj.category_id] = {};
+      const next = (summary[adj.category_id][adj.dish_id] || 0) + adj.delta;
+      summary[adj.category_id][adj.dish_id] = Math.max(0, next);
+    });
+    return summary;
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   if (!session) return null;
 
-  const voteSummary = getVoteSummary();
+  const rawVoteSummary = getRawVoteSummary();
+  const voteSummary = getAdjustedVoteSummary(rawVoteSummary);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ChefHat className="h-7 w-7 text-primary" />
+            <GildaLogo className="h-7 w-7 text-primary" />
             <h1 className="text-xl font-serif font-bold">Admin</h1>
           </div>
           <Button variant="ghost" onClick={handleLogout} className="gap-2">
@@ -211,7 +280,7 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="dishes">
           <TabsList className="mb-6">
-            <TabsTrigger value="dishes" className="gap-1"><ChefHat className="h-4 w-4" /> Platos</TabsTrigger>
+            <TabsTrigger value="dishes" className="gap-1"><GildaLogo className="h-4 w-4" /> Platos</TabsTrigger>
             <TabsTrigger value="categories" className="gap-1"><Tag className="h-4 w-4" /> Categorías</TabsTrigger>
             <TabsTrigger value="codes" className="gap-1"><KeyRound className="h-4 w-4" /> Códigos</TabsTrigger>
             <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> Resultados</TabsTrigger>
@@ -239,7 +308,30 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <Label>Foto del plato</Label>
-                  <Input type="file" accept="image/*" onChange={(e) => setDishPhoto(e.target.files?.[0] || null)} />
+                  <div className="space-y-2">
+                    <Input type="file" accept="image/*" onChange={(e) => setDishPhoto(e.target.files?.[0] || null)} />
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => setDishPhoto(e.target.files?.[0] || null)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => cameraInputRef.current?.click()}
+                    >
+                      Usar camara (si disponible)
+                    </Button>
+                    {dishPhoto && (
+                      <p className="text-xs text-muted-foreground">
+                        Foto seleccionada: {dishPhoto.name}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <Button onClick={() => addDishMutation.mutate()} disabled={!newDish.name || !newDish.author || addDishMutation.isPending} className="gap-2">
                   <Plus className="h-4 w-4" /> Añadir Plato
@@ -326,8 +418,26 @@ const AdminDashboard = () => {
             {accessCodes.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                 {accessCodes.map((c) => (
-                  <div key={c.id} className={`text-center p-2 rounded-lg border font-mono text-sm ${c.used ? "bg-muted text-muted-foreground" : "bg-card"}`}>
-                    {c.code}
+                  <div
+                    key={c.id}
+                    className={`text-center p-2 rounded-lg border font-mono text-sm space-y-2 ${
+                      c.used
+                        ? "bg-destructive text-destructive-foreground border-destructive/70"
+                        : "bg-card"
+                    }`}
+                  >
+                    <div>{c.code}</div>
+                    {c.used && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="w-full text-xs"
+                        onClick={() => reopenCodeMutation.mutate(c.id)}
+                        disabled={reopenCodeMutation.isPending}
+                      >
+                        {reopenCodeMutation.isPending ? "Reabriendo..." : "Rectificar"}
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -340,17 +450,44 @@ const AdminDashboard = () => {
               Total de votos: {votes.length} | Likes: {votes.filter((v) => v.liked).length}
             </div>
             {categories.map((cat) => {
-              const catVotes = voteSummary[cat.id] || {};
-              const ranked = Object.entries(catVotes)
-                .map(([dishId, count]) => ({ dish: dishes.find((d) => d.id === dishId), likes: count }))
-                .filter((r) => r.dish)
+              const showingOriginal = !!showOriginalByCategory[cat.id];
+              const catVotes = showingOriginal
+                ? (rawVoteSummary[cat.id] || {})
+                : (voteSummary[cat.id] || {});
+              const ranked = dishes
+                .map((dish) => ({
+                  dish,
+                  likes: catVotes[dish.id] || 0,
+                }))
                 .sort((a, b) => b.likes - a.likes);
 
               return (
                 <Card key={cat.id}>
-                  <CardHeader><CardTitle className="font-serif text-lg">{cat.name}</CardTitle></CardHeader>
+                  <CardHeader>
+                    <div className="flex items-center justify-between gap-3">
+                      <CardTitle className="font-serif text-lg">{cat.name}</CardTitle>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setShowOriginalByCategory((prev) => ({
+                            ...prev,
+                            [cat.id]: !prev[cat.id],
+                          }))
+                        }
+                      >
+                        {showingOriginal ? "Mostrar votos ajustados" : "mostrar votos legales"}
+                      </Button>
+                    </div>
+                  </CardHeader>
                   <CardContent>
-                    {ranked.length === 0 ? (
+                    {showingOriginal && (
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Mostrando solo votos reales de usuarios (sin ajustes manuales del admin).
+                      </p>
+                    )}
+                    {dishes.length === 0 ? (
                       <p className="text-sm text-muted-foreground">Sin votos</p>
                     ) : (
                       <div className="space-y-2">
@@ -358,7 +495,47 @@ const AdminDashboard = () => {
                           <div key={r.dish!.id} className="flex items-center gap-3 p-2 rounded bg-muted/50">
                             <span className="font-bold w-8 text-center">{i + 1}.</span>
                             <span className="flex-1 font-medium">{r.dish!.name}</span>
-                            <span className="text-primary font-bold">{r.likes} ❤️</span>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="outline"
+                                className="h-7 w-7"
+                                onClick={() => {
+                                  if (showingOriginal) {
+                                    setShowOriginalByCategory((prev) => ({ ...prev, [cat.id]: false }));
+                                  }
+                                  adjustVoteMutation.mutate({
+                                    dishId: r.dish!.id,
+                                    categoryId: cat.id,
+                                    delta: -1,
+                                  });
+                                }}
+                                disabled={adjustVoteMutation.isPending || r.likes <= 0}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="text-primary font-bold min-w-10 text-center">{r.likes} ❤️</span>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="outline"
+                                className="h-7 w-7"
+                                onClick={() => {
+                                  if (showingOriginal) {
+                                    setShowOriginalByCategory((prev) => ({ ...prev, [cat.id]: false }));
+                                  }
+                                  adjustVoteMutation.mutate({
+                                    dishId: r.dish!.id,
+                                    categoryId: cat.id,
+                                    delta: 1,
+                                  });
+                                }}
+                                disabled={adjustVoteMutation.isPending}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>

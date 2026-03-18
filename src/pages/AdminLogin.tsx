@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChefHat, ArrowLeft } from "lucide-react";
+import GildaLogo from "@/components/GildaLogo";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
@@ -30,7 +31,7 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="max-w-md w-full p-8">
         <div className="text-center mb-6">
-          <ChefHat className="h-12 w-12 text-primary mx-auto mb-3" />
+          <GildaLogo className="h-12 w-12 text-primary mx-auto mb-3" />
           <h2 className="text-2xl font-serif font-bold">Panel de Administración</h2>
           <p className="text-muted-foreground mt-1 text-sm">Acceso solo para organizadores</p>
         </div>

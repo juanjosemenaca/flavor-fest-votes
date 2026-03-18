@@ -11,7 +11,7 @@ $$ LANGUAGE plpgsql SET search_path = public;
 -- Contest settings table
 CREATE TABLE public.contest_settings (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  contest_name TEXT NOT NULL DEFAULT 'Concurso Gastronómico',
+  contest_name TEXT NOT NULL DEFAULT 'AITORTILLA',
   results_published BOOLEAN NOT NULL DEFAULT false,
   voting_open BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -22,7 +22,7 @@ ALTER TABLE public.contest_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can read contest settings" ON public.contest_settings FOR SELECT USING (true);
 CREATE POLICY "Only authenticated users can update settings" ON public.contest_settings FOR UPDATE TO authenticated USING (true);
 
-INSERT INTO public.contest_settings (contest_name) VALUES ('Concurso Gastronómico');
+INSERT INTO public.contest_settings (contest_name) VALUES ('AITORTILLA');
 
 -- Vote categories table
 CREATE TABLE public.categories (
@@ -95,6 +95,8 @@ CREATE POLICY "Auth users can delete dish photos" ON storage.objects FOR DELETE 
 
 -- Insert some default categories
 INSERT INTO public.categories (name, description, display_order) VALUES
-  ('Mejor Sabor', 'El plato con el sabor más delicioso', 1),
-  ('Mejor Presentación', 'El plato con la presentación más atractiva', 2),
-  ('Más Original', 'El plato más creativo e innovador', 3);
+  ('mejor pintxos', 'El pintxo más sabroso del concurso', 1),
+  ('más original', 'El pintxo más creativo e innovador', 2),
+  ('mejor presentación', 'El pintxo con la presentación más atractiva', 3),
+  ('pintxo ilusión', 'El pintxo que más sorprende o emociona', 4),
+  ('pintxo basura', 'El pintxo más desastre del concurso', 5);

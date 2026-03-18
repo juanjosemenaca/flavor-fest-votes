@@ -140,6 +140,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vote_adjustments: {
+        Row: {
+          category_id: string
+          created_at: string
+          delta: number
+          dish_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          delta?: number
+          dish_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          delta?: number
+          dish_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_adjustments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vote_adjustments_dish_id_fkey"
+            columns: ["dish_id"]
+            isOneToOne: false
+            referencedRelation: "dishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           access_code_id: string
@@ -194,6 +236,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_vote_delta: {
+        Args: { _category_id: string; _delta: number; _dish_id: string }
+        Returns: number
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

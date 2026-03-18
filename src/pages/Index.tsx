@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchDishes, fetchCategories, fetchContestSettings } from "@/lib/supabase-helpers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChefHat, Trophy, LogIn } from "lucide-react";
+import GildaLogo from "@/components/GildaLogo";
+import { Trophy, LogIn } from "lucide-react";
 
 const Index = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
   const { data: dishes = [] } = useQuery({
     queryKey: ["dishes"],
     queryFn: fetchDishes,
@@ -24,6 +21,10 @@ const Index = () => {
     queryKey: ["contest-settings"],
     queryFn: fetchContestSettings,
   });
+  const contestName =
+    settings?.contest_name === "Concurso Gastronómico"
+      ? "AITORTILLA"
+      : (settings?.contest_name ?? "AITORTILLA");
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,9 +32,9 @@ const Index = () => {
       <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ChefHat className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-serif font-bold text-foreground">
-              {settings?.contest_name ?? "Concurso Gastronómico"}
+            <GildaLogo className="h-16 w-16 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-vasca font-bold text-foreground tracking-wide">
+              {contestName}
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -64,42 +65,19 @@ const Index = () => {
       <section className="py-16 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-serif font-bold text-foreground mb-4 animate-fade-in">
-            Los Mejores Platos
+            Los pintxos más locos
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            Descubre los platos que compiten en nuestro concurso gastronómico y vota por tus favoritos
+            Descubre los pintxos que compiten en AITORTILLA y vota sin piedad
           </p>
         </div>
       </section>
-
-      {/* Category Filter */}
-      {categories.length > 0 && (
-        <div className="container mx-auto px-4 mb-8 flex flex-wrap gap-2 justify-center">
-          <Badge
-            variant={selectedCategory === null ? "default" : "outline"}
-            className="cursor-pointer text-sm px-4 py-1.5"
-            onClick={() => setSelectedCategory(null)}
-          >
-            Todos
-          </Badge>
-          {categories.map((cat) => (
-            <Badge
-              key={cat.id}
-              variant={selectedCategory === cat.id ? "default" : "outline"}
-              className="cursor-pointer text-sm px-4 py-1.5"
-              onClick={() => setSelectedCategory(cat.id)}
-            >
-              {cat.name}
-            </Badge>
-          ))}
-        </div>
-      )}
 
       {/* Dishes Grid */}
       <section className="container mx-auto px-4 pb-20">
         {dishes.length === 0 ? (
           <div className="text-center py-20">
-            <ChefHat className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <GildaLogo className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-xl text-muted-foreground font-serif">
               Aún no hay platos registrados
             </p>
@@ -125,7 +103,7 @@ const Index = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ChefHat className="h-16 w-16 text-muted-foreground/40" />
+                      <GildaLogo className="h-16 w-16 text-muted-foreground/40" />
                     </div>
                   )}
                 </div>
@@ -151,7 +129,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>
-          🍽️ {settings?.contest_name ?? "Concurso Gastronómico"} — ¡Que gane el mejor plato!
+          🍽️ {contestName} — que gane el mejor pintxo
         </p>
       </footer>
     </div>

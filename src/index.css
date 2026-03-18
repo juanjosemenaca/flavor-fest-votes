@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Almendra+Display&family=IM+Fell+English+SC&family=Pirata+One&family=Playfair+Display:wght@400;600;700;800&family=Source+Sans+3:wght@300;400;500;600&family=Uncial+Antiqua&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,49 +6,57 @@
 
 @layer base {
   :root {
-    --background: 35 30% 95%;
-    --foreground: 25 30% 12%;
+    /* Basque-style title font switcher:
+       - "IM Fell English SC"
+       - "Almendra Display"
+       - "Uncial Antiqua"
+       - "Pirata One"
+       Change only this line to swap style globally in top menu title. */
+    --font-vasca: "IM Fell English SC";
 
-    --card: 35 25% 92%;
-    --card-foreground: 25 30% 12%;
+    --background: 24 14% 6%;
+    --foreground: 35 20% 92%;
 
-    --popover: 35 30% 95%;
-    --popover-foreground: 25 30% 12%;
+    --card: 24 12% 10%;
+    --card-foreground: 35 20% 92%;
 
-    --primary: 15 60% 38%;
-    --primary-foreground: 35 30% 95%;
+    --popover: 24 12% 10%;
+    --popover-foreground: 35 20% 92%;
 
-    --secondary: 85 25% 35%;
-    --secondary-foreground: 35 30% 95%;
+    --primary: 14 64% 56%;
+    --primary-foreground: 24 18% 10%;
 
-    --muted: 35 20% 88%;
-    --muted-foreground: 25 15% 45%;
+    --secondary: 85 22% 32%;
+    --secondary-foreground: 35 20% 92%;
 
-    --accent: 30 50% 55%;
-    --accent-foreground: 35 30% 95%;
+    --muted: 24 10% 16%;
+    --muted-foreground: 35 14% 66%;
 
-    --destructive: 0 65% 50%;
-    --destructive-foreground: 35 30% 95%;
+    --accent: 30 42% 44%;
+    --accent-foreground: 35 20% 92%;
 
-    --border: 30 20% 80%;
-    --input: 30 20% 80%;
-    --ring: 15 60% 38%;
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 35 20% 92%;
+
+    --border: 24 10% 20%;
+    --input: 24 10% 20%;
+    --ring: 14 64% 56%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 35 25% 92%;
-    --sidebar-foreground: 25 30% 12%;
-    --sidebar-primary: 15 60% 38%;
-    --sidebar-primary-foreground: 35 30% 95%;
-    --sidebar-accent: 35 20% 88%;
-    --sidebar-accent-foreground: 25 30% 12%;
-    --sidebar-border: 30 20% 80%;
-    --sidebar-ring: 15 60% 38%;
+    --sidebar-background: 24 12% 9%;
+    --sidebar-foreground: 35 20% 92%;
+    --sidebar-primary: 14 64% 56%;
+    --sidebar-primary-foreground: 24 18% 10%;
+    --sidebar-accent: 24 14% 20%;
+    --sidebar-accent-foreground: 35 20% 92%;
+    --sidebar-border: 24 12% 24%;
+    --sidebar-ring: 14 64% 56%;
 
-    --success: 85 40% 40%;
-    --success-foreground: 35 30% 95%;
-    --warm: 40 60% 50%;
-    --warm-foreground: 25 30% 12%;
+    --success: 85 36% 42%;
+    --success-foreground: 35 20% 92%;
+    --warm: 38 62% 54%;
+    --warm-foreground: 24 18% 10%;
   }
 
   .dark {
@@ -103,4 +111,26 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
   }
+}
+
+/* Top menu title font */
+.font-vasca {
+  font-family: var(--font-vasca), serif;
+}
+
+/* Optional direct classes for quick testing */
+.font-vasca-almendra {
+  font-family: "Almendra Display", serif;
+}
+
+.font-vasca-fell {
+  font-family: "IM Fell English SC", serif;
+}
+
+.font-vasca-uncial {
+  font-family: "Uncial Antiqua", serif;
+}
+
+.font-vasca-pirata {
+  font-family: "Pirata One", serif;
 }

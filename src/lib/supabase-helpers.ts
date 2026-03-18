@@ -1,14 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
 
+type AccessCodeValidationResult =
+  | { ok: true; data: { id: string; code: string; used: boolean } }
+  | { ok: false; reason: "invalid" | "used" };
+
 export async function validateAccessCode(code: string) {
   const { data, error } = await supabase
     .from("access_codes")
-    .select("*")
+    .select("id, code, used")
     .eq("code", code.toUpperCase().trim())
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  if (!data) return { ok: false, reason: "invalid" } as AccessCodeValidationResult;
+  if (data.used) return { ok: false, reason: "used" } as AccessCodeValidationResult;
+  return { ok: true, data } as AccessCodeValidationResult;
 }
 
 export async function fetchDishes() {
@@ -51,17 +57,16 @@ export async function fetchVotesForCode(accessCodeId: string) {
 export async function submitVote(
   accessCodeId: string,
   dishId: string,
-  categoryId: string,
-  liked: boolean
+  categoryId: string
 ) {
   const { error } = await supabase.from("votes").upsert(
     {
       access_code_id: accessCodeId,
       dish_id: dishId,
       category_id: categoryId,
-      liked,
+      liked: true,
     },
-    { onConflict: "access_code_id,dish_id,category_id" }
+    { onConflict: "access_code_id,category_id" }
   );
   if (error) throw error;
 }
