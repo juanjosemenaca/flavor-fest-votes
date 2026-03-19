@@ -37,15 +37,15 @@ const Vote = () => {
   });
 
   const { data: dishes = [] } = useQuery({
-    queryKey: ["dishes"],
-    queryFn: fetchDishes,
-    enabled: !!accessCodeId,
+    queryKey: ["dishes", "vote", editionId ?? "none"],
+    queryFn: () => fetchDishes(editionId ?? undefined),
+    enabled: !!accessCodeId && editionId !== undefined,
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
-    enabled: !!accessCodeId,
+    queryKey: ["categories", "vote", editionId ?? "none"],
+    queryFn: () => fetchCategories(editionId ?? undefined),
+    enabled: !!accessCodeId && editionId !== undefined,
   });
 
   const { data: existingVotes = [] } = useQuery({
