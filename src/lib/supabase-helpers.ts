@@ -110,7 +110,7 @@ export async function validateAccessCode(
   return { ok: true, data } as AccessCodeValidationResult;
 }
 
-/** Fetch dishes for an edition. Uses current edition if editionId not provided. Solo muestra pintxos de la edición seleccionada. */
+/** Fetch dishes for an edition. Uses current edition if editionId not provided. Fallback: si la edición activa no tiene pintxos, muestra todos. */
 export async function fetchDishes(editionId?: string) {
   let q = supabase.from("dishes").select("*").order("created_at", { ascending: true });
   if (editionId) {
@@ -121,7 +121,16 @@ export async function fetchDishes(editionId?: string) {
   }
   const { data, error } = await q;
   if (error) throw error;
-  return data ?? [];
+  const dishes = data ?? [];
+  if (dishes.length > 0) return dishes;
+  if (!editionId) {
+    const { data: allData, error: allError } = await supabase
+      .from("dishes")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (!allError && (allData?.length ?? 0) > 0) return allData ?? [];
+  }
+  return dishes;
 }
 
 /** Fetch categories for an edition. Uses current edition if editionId not provided. */

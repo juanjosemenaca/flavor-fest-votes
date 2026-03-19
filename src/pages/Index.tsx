@@ -35,12 +35,16 @@ const Index = () => {
   const { data: currentEdition } = useQuery({
     queryKey: ["edition-current"],
     queryFn: fetchCurrentEdition,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: dishes = [] } = useQuery({
-    queryKey: ["dishes", currentEdition?.id ?? "none"],
+    queryKey: ["dishes", "landing", currentEdition?.id ?? "none"],
     queryFn: () => fetchDishes(currentEdition?.id ?? undefined),
     enabled: currentEdition !== undefined,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: settings } = useQuery({
@@ -183,6 +187,11 @@ const Index = () => {
         <p>
           🍽️ {contestName} — {t("index.footerMotto")}
         </p>
+        {currentEdition && (
+          <p className="mt-1 text-xs opacity-70">
+            Edición {currentEdition.year} · {dishes.length} pintxo{dishes.length !== 1 ? "s" : ""}
+          </p>
+        )}
       </footer>
     </div>
   );
