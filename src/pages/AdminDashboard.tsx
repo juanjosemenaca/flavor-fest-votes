@@ -132,17 +132,21 @@ const AdminDashboard = () => {
   });
 
   // --- Dish Management ---
-  const [newDish, setNewDish] = useState({ name: "", author: "", description: "" });
+  const [newDish, setNewDish] = useState({ name: "", teamId: "", description: "" });
   const [dishPhoto, setDishPhoto] = useState<File | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const addDishMutation = useMutation({
     mutationFn: async () => {
+      const team = participantTeams.find((t) => t.id === newDish.teamId);
+      if (!team) throw new Error("Selecciona un equipo");
       let imageUrl: string | null = null;
       if (dishPhoto) imageUrl = await uploadDishPhoto(dishPhoto);
+      const authorLabel = `Equipo ${team.team_number}: ${team.title}`;
       const { error } = await supabase.from("dishes").insert({
         name: newDish.name,
-        author: newDish.author,
+        author: authorLabel,
+        team_id: team.id,
         description: newDish.description || null,
         image_url: imageUrl,
       });
@@ -150,7 +154,7 @@ const AdminDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dishes"] });
-      setNewDish({ name: "", author: "", description: "" });
+      setNewDish({ name: "", teamId: "", description: "" });
       setDishPhoto(null);
       toast({ title: t("admin.dishes.added") });
     },
@@ -506,7 +510,21 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <Label>{t("admin.dishes.author")}</Label>
-                    <Input value={newDish.author} onChange={(e) => setNewDish({ ...newDish, author: e.target.value })} />
+                    <select
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      value={newDish.teamId}
+                      onChange={(e) => setNewDish({ ...newDish, teamId: e.target.value })}
+                    >
+                      <option value="">Selecciona equipo</option>
+                      {participantTeams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          Equipo {team.team_number}: {team.title}
+                        </option>
+                      ))}
+                    </select>
+                    {participantTeams.length === 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">Crea equipos en la pestaña Equipos primero.</p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -540,7 +558,7 @@ const AdminDashboard = () => {
                     )}
                   </div>
                 </div>
-                <Button onClick={() => addDishMutation.mutate()} disabled={!newDish.name || !newDish.author || addDishMutation.isPending} className="gap-2">
+                <Button onClick={() => addDishMutation.mutate()} disabled={!newDish.name || !newDish.teamId || addDishMutation.isPending} className="gap-2">
                   <Plus className="h-4 w-4" /> {t("admin.dishes.addButton")}
                 </Button>
               </CardContent>

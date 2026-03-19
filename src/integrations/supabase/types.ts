@@ -130,6 +130,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -139,6 +140,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -148,9 +150,18 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          team_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dishes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "participant_teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       participant_team_members: {
         Row: {
