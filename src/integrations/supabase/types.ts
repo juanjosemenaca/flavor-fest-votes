@@ -14,10 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      editions: {
+        Row: {
+          id: string
+          year: number
+          contest_name: string
+          voting_open: boolean
+          results_published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          year: number
+          contest_name?: string
+          voting_open?: boolean
+          results_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          year?: number
+          contest_name?: string
+          voting_open?: boolean
+          results_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       access_codes: {
         Row: {
           code: string
           created_at: string
+          edition_id: string
           id: string
           label: string | null
           used: boolean
@@ -25,6 +56,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          edition_id: string
           id?: string
           label?: string | null
           used?: boolean
@@ -32,15 +64,25 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          edition_id?: string
           id?: string
           label?: string | null
           used?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "access_codes_edition_id_fkey"
+            columns: ["edition_id"]
+            isOneToOne: false
+            referencedRelation: "editions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       attendees: {
         Row: {
           created_at: string
+          edition_id: string
           email: string | null
           full_name: string
           id: string
@@ -50,6 +92,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          edition_id: string
           email?: string | null
           full_name: string
           id?: string
@@ -59,6 +102,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          edition_id?: string
           email?: string | null
           full_name?: string
           id?: string
@@ -73,6 +117,7 @@ export type Database = {
           created_at: string
           description: string | null
           display_order: number
+          edition_id: string
           id: string
           name: string
           updated_at: string
@@ -81,6 +126,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_order?: number
+          edition_id: string
           id?: string
           name: string
           updated_at?: string
@@ -89,6 +135,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_order?: number
+          edition_id?: string
           id?: string
           name?: string
           updated_at?: string
@@ -127,6 +174,7 @@ export type Database = {
           author: string
           created_at: string
           description: string | null
+          edition_id: string
           id: string
           image_url: string | null
           name: string
@@ -137,6 +185,7 @@ export type Database = {
           author: string
           created_at?: string
           description?: string | null
+          edition_id: string
           id?: string
           image_url?: string | null
           name: string
@@ -202,6 +251,7 @@ export type Database = {
       participant_teams: {
         Row: {
           created_at: string
+          edition_id: string
           id: string
           team_number: number
           title: string
@@ -209,15 +259,17 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          edition_id: string
           id?: string
-          team_number?: never
+          team_number?: number | null
           title: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          edition_id?: string
           id?: string
-          team_number?: never
+          team_number?: number | null
           title?: string
           updated_at?: string
         }
@@ -247,6 +299,7 @@ export type Database = {
           created_at: string
           delta: number
           dish_id: string
+          edition_id: string
           id: string
           updated_at: string
         }
@@ -289,6 +342,7 @@ export type Database = {
           category_id: string
           created_at: string
           dish_id: string
+          edition_id: string
           id: string
           liked: boolean
         }
@@ -297,6 +351,7 @@ export type Database = {
           category_id: string
           created_at?: string
           dish_id: string
+          edition_id: string
           id?: string
           liked: boolean
         }

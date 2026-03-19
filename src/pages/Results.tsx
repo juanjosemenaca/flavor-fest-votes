@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchContestSettings, fetchDishes, fetchCategories, fetchAllVotes } from "@/lib/supabase-helpers";
+import { fetchEditions, fetchEditionByYear, fetchDishes, fetchCategories, fetchAllVotes } from "@/lib/supabase-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -12,28 +13,43 @@ const MEDAL_LABELS = ["🥇", "🥈", "🥉"];
 
 const Results = () => {
   const { t } = useI18n();
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+  const { data: editions = [] } = useQuery({
+    queryKey: ["editions"],
+    queryFn: fetchEditions,
+  });
+
+  const effectiveYear = selectedYear ?? editions[0]?.year ?? new Date().getFullYear();
+  const edition = editions.find((e) => e.year === effectiveYear);
+  const editionId = edition?.id ?? null;
+
   const { data: settings } = useQuery({
-    queryKey: ["contest-settings"],
-    queryFn: fetchContestSettings,
+    queryKey: ["edition-settings", effectiveYear],
+    queryFn: () => fetchEditionByYear(effectiveYear),
+    enabled: !!effectiveYear,
   });
 
   const { data: dishes = [] } = useQuery({
-    queryKey: ["dishes"],
-    queryFn: fetchDishes,
+    queryKey: ["dishes", editionId],
+    queryFn: () => fetchDishes(editionId ?? undefined),
+    enabled: !!editionId,
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
+    queryKey: ["categories", editionId],
+    queryFn: () => fetchCategories(editionId ?? undefined),
+    enabled: !!editionId,
   });
 
   const { data: votes = [] } = useQuery({
-    queryKey: ["all-votes"],
-    queryFn: fetchAllVotes,
-    enabled: settings?.results_published === true,
+    queryKey: ["all-votes", editionId],
+    queryFn: () => fetchAllVotes(editionId ?? undefined),
+    enabled: !!editionId && settings?.results_published === true,
   });
 
-  if (!settings?.results_published) {
+  const resultsPublished = settings?.results_published ?? false;
+  if (!resultsPublished) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center p-8">
@@ -68,13 +84,26 @@ const Results = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-black sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-3">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
-          </Link>
-          <Trophy className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-serif font-bold">{t("results.title")}</h1>
+            <Link to="/">
+              <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+            </Link>
+            <Trophy className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-serif font-bold">{t("results.title")}</h1>
+            {editions.length > 1 && (
+              <select
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm font-medium"
+                value={effectiveYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                {editions.map((e) => (
+                  <option key={e.id} value={e.year}>
+                    {e.year}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <LanguageSelector />
         </div>

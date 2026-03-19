@@ -30,6 +30,14 @@ const translations: TranslationDict = {
     "index.emptySubtitle": "Los pintxos apareceran aqui cuando el organizador los publique",
     "index.footerMotto": "que gane el mejor pintxo",
 
+    "photos.title": "Subir fotos del evento",
+    "photos.subtitle": "Comparte tus fotos",
+    "photos.description": "Sube fotos del evento y aparecerán en la página principal",
+    "photos.select": "Seleccionar fotos",
+    "photos.upload": "Subir fotos",
+    "photos.uploading": "Subiendo...",
+    "nav.photos": "Subir fotos",
+
     "vote.welcomeTitle": "Bienvenido!",
     "vote.welcomeDescription": "Elige un pintxo por cada categoria",
     "vote.closedTitle": "Votacion cerrada",
@@ -145,6 +153,14 @@ const translations: TranslationDict = {
     "index.emptyTitle": "Encara no hi ha pintxos registrats",
     "index.emptySubtitle": "Els pintxos apareixeran aqui quan l'organitzador els publiqui",
     "index.footerMotto": "que guanyi el millor pintxo",
+
+    "photos.title": "Pujar fotos de l'esdeveniment",
+    "photos.subtitle": "Comparteix les teves fotos",
+    "photos.description": "Puja fotos de l'esdeveniment i apareixeran a la pàgina principal",
+    "photos.select": "Seleccionar fotos",
+    "photos.upload": "Pujar fotos",
+    "photos.uploading": "Pujant...",
+    "nav.photos": "Pujar fotos",
 
     "vote.welcomeTitle": "Benvingut!",
     "vote.welcomeDescription": "Tria un pintxo per cada categoria",
@@ -263,6 +279,14 @@ const translations: TranslationDict = {
     "index.emptySubtitle": "Pintxos will appear here when the organizer publishes them",
     "index.footerMotto": "may the best pintxo win",
 
+    "photos.title": "Upload event photos",
+    "photos.subtitle": "Share your photos",
+    "photos.description": "Upload event photos and they will appear on the main page",
+    "photos.select": "Select photos",
+    "photos.upload": "Upload photos",
+    "photos.uploading": "Uploading...",
+    "nav.photos": "Upload photos",
+
     "vote.welcomeTitle": "Welcome!",
     "vote.welcomeDescription": "Pick one pintxo per category",
     "vote.closedTitle": "Voting closed",
@@ -379,6 +403,14 @@ const translations: TranslationDict = {
     "index.emptyTitle": "Oraindik ez dago pintxorik erregistratuta",
     "index.emptySubtitle": "Pintxoak hemen agertuko dira antolatzaileak argitaratzen dituenean",
     "index.footerMotto": "irabaz dezala pintxo onenak",
+
+    "photos.title": "Gertaerako argazkiak igo",
+    "photos.subtitle": "Partekatu zure argazkiak",
+    "photos.description": "Igo gertaerako argazkiak eta orri nagusian agertuko dira",
+    "photos.select": "Argazkiak hautatu",
+    "photos.upload": "Argazkiak igo",
+    "photos.uploading": "Igotzen...",
+    "nav.photos": "Argazkiak igo",
 
     "vote.welcomeTitle": "Ongi etorri!",
     "vote.welcomeDescription": "Aukeratu pintxo bat kategoria bakoitzean",

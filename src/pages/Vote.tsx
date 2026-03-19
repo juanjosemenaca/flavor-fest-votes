@@ -22,6 +22,7 @@ const Vote = () => {
   const { t } = useI18n();
   const [code, setCode] = useState("");
   const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
+  const [editionId, setEditionId] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
   const [selectedByCategory, setSelectedByCategory] = useState<Record<string, string | null>>({});
   const queryClient = useQueryClient();
@@ -86,11 +87,12 @@ const Vote = () => {
 
       const selectedEntries = Object.entries(selectedByCategory).filter(([, dishId]) => !!dishId);
 
-      if (selectedEntries.length > 0) {
+      if (selectedEntries.length > 0 && editionId) {
         const payload = selectedEntries.map(([categoryId, dishId]) => ({
           access_code_id: accessCodeId,
           category_id: categoryId,
           dish_id: dishId as string,
+          edition_id: editionId,
           liked: true,
         }));
         const { error: upsertError } = await supabase
@@ -134,6 +136,7 @@ const Vote = () => {
       const result = await validateAccessCode(code);
       if (result.ok) {
         setAccessCodeId(result.data.id);
+        setEditionId(result.data.edition_id ?? null);
         toast({ title: t("vote.welcomeTitle"), description: t("vote.welcomeDescription") });
       } else if (result.reason === "used") {
         toast({

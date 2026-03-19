@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -7,8 +7,11 @@ import {
   fetchCategories,
   fetchContestSettings,
   fetchAllVotes,
+  fetchEditions,
+  fetchEditionByYear,
   uploadDishPhoto,
   generateAccessCode,
+  getEventPhotoUrl,
 } from "@/lib/supabase-helpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +36,9 @@ import {
   Copy,
   Users,
   Pencil,
+  Camera,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { Session } from "@supabase/supabase-js";
@@ -41,6 +47,8 @@ const AdminDashboard = () => {
   const { t } = useI18n();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [newEditionYear, setNewEditionYear] = useState<string>("");
   const [showOriginalByCategory, setShowOriginalByCategory] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -59,58 +67,103 @@ const AdminDashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const { data: dishes = [] } = useQuery({ queryKey: ["dishes"], queryFn: fetchDishes, enabled: !!session });
-  const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories, enabled: !!session });
-  const { data: settings } = useQuery({ queryKey: ["contest-settings"], queryFn: fetchContestSettings, enabled: !!session });
-  const { data: votes = [] } = useQuery({ queryKey: ["all-votes"], queryFn: fetchAllVotes, enabled: !!session });
-  const { data: voteAdjustments = [] } = useQuery({
-    queryKey: ["vote-adjustments"],
+  const { data: editions = [] } = useQuery({
+    queryKey: ["editions"],
+    queryFn: fetchEditions,
+    enabled: !!session,
+  });
+
+  const effectiveYear = selectedYear ?? editions[0]?.year ?? new Date().getFullYear();
+  const editionId = editions.find((e) => e.year === effectiveYear)?.id ?? null;
+  const isLegacyMode = editions.length === 0;
+
+  const { data: dishes = [] } = useQuery({
+    queryKey: ["dishes", editionId ?? "legacy"],
+    queryFn: () => fetchDishes(editionId ?? undefined),
+    enabled: !!session && (!!editionId || isLegacyMode),
+  });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories", editionId ?? "legacy"],
+    queryFn: () => fetchCategories(editionId ?? undefined),
+    enabled: !!session && (!!editionId || isLegacyMode),
+  });
+  const { data: settings } = useQuery({
+    queryKey: ["contest-settings", effectiveYear],
     queryFn: async () => {
-      const { data, error } = await supabase.from("vote_adjustments").select("*");
+      try {
+        const edition = await fetchEditionByYear(effectiveYear);
+        if (edition) return { contest_name: edition.contest_name, voting_open: edition.voting_open, results_published: edition.results_published, id: edition.id };
+      } catch {
+        /* editions table may not exist */
+      }
+      return fetchContestSettings();
+    },
+    enabled: !!session,
+  });
+  const { data: votes = [] } = useQuery({
+    queryKey: ["all-votes", editionId ?? "legacy"],
+    queryFn: () => fetchAllVotes(editionId ?? undefined),
+    enabled: !!session && (!!editionId || isLegacyMode),
+  });
+  const { data: voteAdjustments = [] } = useQuery({
+    queryKey: ["vote-adjustments", editionId ?? "legacy"],
+    queryFn: async () => {
+      const { data, error } = editionId
+        ? await supabase.from("vote_adjustments").select("*").eq("edition_id", editionId)
+        : await supabase.from("vote_adjustments").select("*");
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!session,
+    enabled: !!session && (!!editionId || isLegacyMode),
   });
 
   const { data: accessCodes = [] } = useQuery({
-    queryKey: ["access-codes"],
+    queryKey: ["access-codes", editionId ?? "legacy"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("access_codes").select("*").order("created_at", { ascending: false });
+      const q = supabase.from("access_codes").select("*").order("created_at", { ascending: false });
+      const { data, error } = editionId ? await q.eq("edition_id", editionId) : await q;
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!session,
+    enabled: !!session && (!!editionId || isLegacyMode),
   });
 
   const { data: attendees = [] } = useQuery({
-    queryKey: ["attendees"],
+    queryKey: ["attendees", editionId ?? "legacy"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("attendees")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const q = supabase.from("attendees").select("*").order("created_at", { ascending: false });
+      const { data, error } = editionId ? await q.eq("edition_id", editionId) : await q;
       if (error) {
-        // Keep admin functional even if migration has not been applied yet.
         if ((error as { code?: string }).code === "PGRST205") return [];
         throw error;
       }
       return data ?? [];
     },
-    enabled: !!session,
+    enabled: !!session && (!!editionId || isLegacyMode),
   });
 
   const { data: participantTeams = [] } = useQuery({
-    queryKey: ["participant-teams"],
+    queryKey: ["participant-teams", editionId ?? "legacy"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("participant_teams")
-        .select("*")
-        .order("team_number", { ascending: true });
+      const q = supabase.from("participant_teams").select("*").order("team_number", { ascending: true });
+      const { data, error } = editionId ? await q.eq("edition_id", editionId) : await q;
       if (error) {
         if ((error as { code?: string }).code === "PGRST205") return [];
         throw error;
       }
+      return data ?? [];
+    },
+    enabled: !!session && (!!editionId || isLegacyMode),
+  });
+
+  const { data: eventPhotos = [] } = useQuery({
+    queryKey: ["event-photos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_photos")
+        .select("id, storage_path, is_hidden, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!session,
@@ -138,6 +191,7 @@ const AdminDashboard = () => {
 
   const addDishMutation = useMutation({
     mutationFn: async () => {
+      if (!editionId && !isLegacyMode) throw new Error("Selecciona una edición");
       const team = participantTeams.find((t) => t.id === newDish.teamId);
       if (!team) throw new Error("Selecciona un equipo");
       let imageUrl: string | null = null;
@@ -147,6 +201,7 @@ const AdminDashboard = () => {
         name: newDish.name,
         author: authorLabel,
         team_id: team.id,
+        ...(editionId && { edition_id: editionId }),
         description: newDish.description || null,
         image_url: imageUrl,
       });
@@ -177,10 +232,12 @@ const AdminDashboard = () => {
 
   const addCategoryMutation = useMutation({
     mutationFn: async () => {
+      if (!editionId && !isLegacyMode) throw new Error("Selecciona una edición");
       const { error } = await supabase.from("categories").insert({
         name: newCategory.name,
         description: newCategory.description || null,
         display_order: categories.length,
+        ...(editionId && { edition_id: editionId }),
       });
       if (error) throw error;
     },
@@ -222,8 +279,10 @@ const AdminDashboard = () => {
 
   const generateCodesMutation = useMutation({
     mutationFn: async () => {
+      if (!editionId && !isLegacyMode) throw new Error("Selecciona una edición");
       const codes = Array.from({ length: numCodes }, () => ({
         code: generateAccessCode(),
+        ...(editionId && { edition_id: editionId }),
       }));
       const { error } = await supabase.from("access_codes").insert(codes);
       if (error) throw error;
@@ -259,6 +318,7 @@ const AdminDashboard = () => {
 
   const addAttendeeMutation = useMutation({
     mutationFn: async () => {
+      if (!editionId && !isLegacyMode) throw new Error("Selecciona una edición");
       const fullName = newAttendee.fullName.trim();
       if (!fullName) return;
 
@@ -267,6 +327,7 @@ const AdminDashboard = () => {
         email: newAttendee.email.trim() || null,
         phone: newAttendee.phone.trim() || null,
         notes: newAttendee.notes.trim() || null,
+        ...(editionId && { edition_id: editionId }),
       });
       if (error) throw error;
     },
@@ -319,6 +380,7 @@ const AdminDashboard = () => {
 
   const addParticipantTeamMutation = useMutation({
     mutationFn: async () => {
+      if (!editionId && !isLegacyMode) throw new Error("Selecciona una edición");
       const title = newTeamTitle.trim();
       if (!title) throw new Error("El equipo necesita un titulo");
       const selectedAvailableMemberIds = newTeamMemberIds.filter((id) => !assignedAttendeeIds.has(id));
@@ -326,7 +388,7 @@ const AdminDashboard = () => {
 
       const { data: teamData, error: teamError } = await supabase
         .from("participant_teams")
-        .insert({ title })
+        .insert({ title, ...(editionId && { edition_id: editionId }) })
         .select("id")
         .single();
       if (teamError) throw teamError;
@@ -411,23 +473,77 @@ const AdminDashboard = () => {
     onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
-  // --- Settings ---
+  // --- Settings --- (editions or contest_settings)
   const toggleResultsMutation = useMutation({
     mutationFn: async (published: boolean) => {
-      if (!settings) return;
-      const { error } = await supabase.from("contest_settings").update({ results_published: published }).eq("id", settings.id);
+      if (!settings?.id) return;
+      const table = editionId ? "editions" : "contest_settings";
+      const { error } = await supabase.from(table).update({ results_published: published }).eq("id", settings.id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contest-settings"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contest-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["editions"] });
+    },
   });
 
   const toggleVotingMutation = useMutation({
     mutationFn: async (open: boolean) => {
-      if (!settings) return;
-      const { error } = await supabase.from("contest_settings").update({ voting_open: open }).eq("id", settings.id);
+      if (!settings?.id) return;
+      const table = editionId ? "editions" : "contest_settings";
+      const { error } = await supabase.from(table).update({ voting_open: open }).eq("id", settings.id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contest-settings"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contest-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["editions"] });
+    },
+  });
+
+  const deleteEventPhotoMutation = useMutation({
+    mutationFn: async ({ id, storagePath }: { id: string; storagePath: string }) => {
+      const { error: delDb } = await supabase.from("event_photos").delete().eq("id", id);
+      if (delDb) throw delDb;
+      await supabase.storage.from("event-photos").remove([storagePath]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event-photos"] });
+      queryClient.invalidateQueries({ queryKey: ["event-photos-carousel"] });
+      toast({ title: "Foto eliminada" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const toggleEventPhotoVisibilityMutation = useMutation({
+    mutationFn: async ({ id, isHidden }: { id: string; isHidden: boolean }) => {
+      const { error } = await supabase.from("event_photos").update({ is_hidden: !isHidden }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event-photos"] });
+      queryClient.invalidateQueries({ queryKey: ["event-photos-carousel"] });
+      toast({ title: "Visibilidad actualizada" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const createEditionMutation = useMutation({
+    mutationFn: async (year: number) => {
+      const { error } = await supabase.from("editions").insert({
+        year,
+        contest_name: "AITORTILLA",
+        voting_open: false,
+        results_published: false,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, year) => {
+      queryClient.invalidateQueries({ queryKey: ["editions"] });
+      setNewEditionYear("");
+      setSelectedYear(year);
+      toast({ title: `Edición ${year} creada` });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
   const handleLogout = async () => {
@@ -472,10 +588,55 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <GildaLogo className="h-7 w-7 text-primary" />
             <h1 className="text-xl font-serif font-bold">{t("admin.title")}</h1>
+            <div className="flex items-center gap-2">
+              {editions.length > 0 && (
+                <select
+                  className="h-9 rounded-md border border-input bg-background px-3 text-sm font-medium"
+                  value={effectiveYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                >
+                  {editions.map((e) => (
+                    <option key={e.id} value={e.year}>
+                      {e.year}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number"
+                  placeholder="Año (ej. 2025)"
+                  className="h-9 w-24 text-center"
+                  value={newEditionYear}
+                  onChange={(e) => setNewEditionYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  min={2000}
+                  max={2100}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const year = parseInt(newEditionYear, 10);
+                    if (isNaN(year) || year < 2000 || year > 2100) {
+                      toast({ title: "Introduce un año válido (2000-2100)", variant: "destructive" });
+                      return;
+                    }
+                    if (editions.some((e) => e.year === year)) {
+                      toast({ title: `La edición ${year} ya existe`, variant: "destructive" });
+                      return;
+                    }
+                    createEditionMutation.mutate(year);
+                  }}
+                  disabled={createEditionMutation.isPending || !newEditionYear}
+                >
+                  Crear edición
+                </Button>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSelector />
@@ -495,6 +656,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="attendees" className="gap-1"><Users className="h-4 w-4" /> Asistentes</TabsTrigger>
             <TabsTrigger value="teams" className="gap-1"><Users className="h-4 w-4" /> Equipos</TabsTrigger>
             <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> {t("admin.tab.results")}</TabsTrigger>
+            <TabsTrigger value="photos" className="gap-1"><Camera className="h-4 w-4" /> Fotos</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1"><Settings className="h-4 w-4" /> {t("admin.tab.settings")}</TabsTrigger>
           </TabsList>
 
@@ -1012,6 +1174,68 @@ const AdminDashboard = () => {
                 </Card>
               );
             })}
+          </TabsContent>
+
+          {/* PHOTOS TAB */}
+          <TabsContent value="photos" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif">Fotos del evento ({eventPhotos.length})</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Las fotos ocultas no se muestran en el carrusel de la landing.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {eventPhotos.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No hay fotos. Los asistentes pueden subirlas desde <Link to="/fotos" className="text-primary underline">/fotos</Link>.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {eventPhotos.map((photo) => (
+                      <div key={photo.id} className={`group relative rounded-lg overflow-hidden border ${photo.is_hidden ? "opacity-50" : ""}`}>
+                        <img
+                          src={getEventPhotoUrl(photo.storage_path)}
+                          alt=""
+                          className="aspect-square w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => toggleEventPhotoVisibilityMutation.mutate({
+                              id: photo.id,
+                              isHidden: photo.is_hidden,
+                            })}
+                            disabled={toggleEventPhotoVisibilityMutation.isPending}
+                          >
+                            {photo.is_hidden ? (
+                              <><Eye className="h-4 w-4" /> Mostrar</>
+                            ) : (
+                              <><EyeOff className="h-4 w-4" /> Ocultar</>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deleteEventPhotoMutation.mutate({
+                              id: photo.id,
+                              storagePath: photo.storage_path,
+                            })}
+                            disabled={deleteEventPhotoMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {photo.is_hidden && (
+                          <span className="absolute top-1 left-1 text-xs bg-muted px-2 py-0.5 rounded">Oculta</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* SETTINGS TAB */}
