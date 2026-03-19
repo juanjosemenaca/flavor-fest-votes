@@ -1,0 +1,2 @@
+ALTER TABLE public.participant_team_members
+ADD CONSTRAINT participant_team_members_attendee_id_unique UNIQUE (attendee_id);

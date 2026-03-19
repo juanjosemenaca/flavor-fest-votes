@@ -152,6 +152,66 @@ export type Database = {
         }
         Relationships: []
       }
+      participant_team_members: {
+        Row: {
+          attendee_id: string
+          created_at: string
+          id: string
+          team_id: string
+        }
+        Insert: {
+          attendee_id: string
+          created_at?: string
+          id?: string
+          team_id: string
+        }
+        Update: {
+          attendee_id?: string
+          created_at?: string
+          id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participant_team_members_attendee_id_fkey"
+            columns: ["attendee_id"]
+            isOneToOne: false
+            referencedRelation: "attendees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participant_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "participant_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participant_teams: {
+        Row: {
+          created_at: string
+          id: string
+          team_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          team_number?: never
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          team_number?: never
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

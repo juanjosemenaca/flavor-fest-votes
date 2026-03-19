@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GildaLogo from "@/components/GildaLogo";
@@ -31,6 +32,7 @@ import {
   Settings,
   Copy,
   Users,
+  Pencil,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { Session } from "@supabase/supabase-js";
@@ -90,6 +92,37 @@ const AdminDashboard = () => {
         .order("created_at", { ascending: false });
       if (error) {
         // Keep admin functional even if migration has not been applied yet.
+        if ((error as { code?: string }).code === "PGRST205") return [];
+        throw error;
+      }
+      return data ?? [];
+    },
+    enabled: !!session,
+  });
+
+  const { data: participantTeams = [] } = useQuery({
+    queryKey: ["participant-teams"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("participant_teams")
+        .select("*")
+        .order("team_number", { ascending: true });
+      if (error) {
+        if ((error as { code?: string }).code === "PGRST205") return [];
+        throw error;
+      }
+      return data ?? [];
+    },
+    enabled: !!session,
+  });
+
+  const { data: participantTeamMembers = [] } = useQuery({
+    queryKey: ["participant-team-members"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("participant_team_members")
+        .select("*");
+      if (error) {
         if ((error as { code?: string }).code === "PGRST205") return [];
         throw error;
       }
@@ -171,6 +204,17 @@ const AdminDashboard = () => {
     phone: "",
     notes: "",
   });
+  const [editingAttendeeId, setEditingAttendeeId] = useState<string | null>(null);
+  const [editingAttendee, setEditingAttendee] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    notes: "",
+  });
+  const [newTeamTitle, setNewTeamTitle] = useState("");
+  const [newTeamMemberIds, setNewTeamMemberIds] = useState<string[]>([]);
+  const assignedAttendeeIds = new Set(participantTeamMembers.map((m) => m.attendee_id));
+  const availableAttendeesForNewTeam = attendees.filter((attendee) => !assignedAttendeeIds.has(attendee.id));
 
   const generateCodesMutation = useMutation({
     mutationFn: async () => {
@@ -241,6 +285,104 @@ const AdminDashboard = () => {
     },
     onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
+
+  const updateAttendeeMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingAttendeeId) return;
+      const fullName = editingAttendee.fullName.trim();
+      if (!fullName) return;
+
+      const { error } = await supabase
+        .from("attendees")
+        .update({
+          full_name: fullName,
+          email: editingAttendee.email.trim() || null,
+          phone: editingAttendee.phone.trim() || null,
+          notes: editingAttendee.notes.trim() || null,
+        })
+        .eq("id", editingAttendeeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendees"] });
+      setEditingAttendeeId(null);
+      setEditingAttendee({ fullName: "", email: "", phone: "", notes: "" });
+      toast({ title: "Asistente actualizado" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const addParticipantTeamMutation = useMutation({
+    mutationFn: async () => {
+      const title = newTeamTitle.trim();
+      if (!title) throw new Error("El equipo necesita un titulo");
+      const selectedAvailableMemberIds = newTeamMemberIds.filter((id) => !assignedAttendeeIds.has(id));
+      if (selectedAvailableMemberIds.length === 0) throw new Error("Selecciona al menos un asistente");
+
+      const { data: teamData, error: teamError } = await supabase
+        .from("participant_teams")
+        .insert({ title })
+        .select("id")
+        .single();
+      if (teamError) throw teamError;
+
+      const { error: membersError } = await supabase.from("participant_team_members").insert(
+        selectedAvailableMemberIds.map((attendeeId) => ({
+          team_id: teamData.id,
+          attendee_id: attendeeId,
+        })),
+      );
+      if (membersError) {
+        await supabase.from("participant_teams").delete().eq("id", teamData.id);
+        throw membersError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["participant-teams"] });
+      queryClient.invalidateQueries({ queryKey: ["participant-team-members"] });
+      setNewTeamTitle("");
+      setNewTeamMemberIds([]);
+      toast({ title: "Equipo participante creado" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const deleteParticipantTeamMutation = useMutation({
+    mutationFn: async (teamId: string) => {
+      const { error } = await supabase.from("participant_teams").delete().eq("id", teamId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["participant-teams"] });
+      queryClient.invalidateQueries({ queryKey: ["participant-team-members"] });
+      toast({ title: "Equipo eliminado" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const beginEditAttendee = (attendee: {
+    id: string;
+    full_name: string;
+    email: string | null;
+    phone: string | null;
+    notes: string | null;
+  }) => {
+    setEditingAttendeeId(attendee.id);
+    setEditingAttendee({
+      fullName: attendee.full_name,
+      email: attendee.email ?? "",
+      phone: attendee.phone ?? "",
+      notes: attendee.notes ?? "",
+    });
+  };
+
+  const toggleNewTeamMember = (attendeeId: string, checked: boolean) => {
+    setNewTeamMemberIds((prev) => {
+      if (checked) return prev.includes(attendeeId) ? prev : [...prev, attendeeId];
+      return prev.filter((id) => id !== attendeeId);
+    });
+  };
 
   const adjustVoteMutation = useMutation({
     mutationFn: async ({
@@ -347,6 +489,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="categories" className="gap-1"><Tag className="h-4 w-4" /> {t("admin.tab.categories")}</TabsTrigger>
             <TabsTrigger value="codes" className="gap-1"><KeyRound className="h-4 w-4" /> {t("admin.tab.codes")}</TabsTrigger>
             <TabsTrigger value="attendees" className="gap-1"><Users className="h-4 w-4" /> Asistentes</TabsTrigger>
+            <TabsTrigger value="teams" className="gap-1"><Users className="h-4 w-4" /> Equipos</TabsTrigger>
             <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> {t("admin.tab.results")}</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1"><Settings className="h-4 w-4" /> {t("admin.tab.settings")}</TabsTrigger>
           </TabsList>
@@ -569,26 +712,182 @@ const AdminDashboard = () => {
                   <div className="space-y-2">
                     {attendees.map((attendee) => (
                       <div key={attendee.id} className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card">
-                        <div>
-                          <p className="font-medium">{attendee.full_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {attendee.email || "-"} | {attendee.phone || "-"}
-                          </p>
-                          {attendee.notes && (
-                            <p className="text-xs text-muted-foreground mt-1">{attendee.notes}</p>
-                          )}
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => deleteAttendeeMutation.mutate(attendee.id)}
-                          disabled={deleteAttendeeMutation.isPending}
-                        >
-                          <Trash2 className="h-3 w-3" /> {t("common.delete")}
-                        </Button>
+                        {editingAttendeeId === attendee.id ? (
+                          <div className="w-full space-y-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <Input
+                                placeholder="Nombre completo"
+                                value={editingAttendee.fullName}
+                                onChange={(e) => setEditingAttendee((prev) => ({ ...prev, fullName: e.target.value }))}
+                              />
+                              <Input
+                                placeholder="Email (opcional)"
+                                type="email"
+                                value={editingAttendee.email}
+                                onChange={(e) => setEditingAttendee((prev) => ({ ...prev, email: e.target.value }))}
+                              />
+                              <Input
+                                placeholder="Telefono (opcional)"
+                                value={editingAttendee.phone}
+                                onChange={(e) => setEditingAttendee((prev) => ({ ...prev, phone: e.target.value }))}
+                              />
+                              <Input
+                                placeholder="Notas (opcional)"
+                                value={editingAttendee.notes}
+                                onChange={(e) => setEditingAttendee((prev) => ({ ...prev, notes: e.target.value }))}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => updateAttendeeMutation.mutate()}
+                                disabled={!editingAttendee.fullName.trim() || updateAttendeeMutation.isPending}
+                              >
+                                Guardar cambios
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingAttendeeId(null);
+                                  setEditingAttendee({ fullName: "", email: "", phone: "", notes: "" });
+                                }}
+                                disabled={updateAttendeeMutation.isPending}
+                              >
+                                Cancelar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div>
+                              <p className="font-medium">{attendee.full_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {attendee.email || "-"} | {attendee.phone || "-"}
+                              </p>
+                              {attendee.notes && (
+                                <p className="text-xs text-muted-foreground mt-1">{attendee.notes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1"
+                                onClick={() => beginEditAttendee(attendee)}
+                                disabled={deleteAttendeeMutation.isPending || updateAttendeeMutation.isPending}
+                              >
+                                <Pencil className="h-3 w-3" /> Editar
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="gap-1"
+                                onClick={() => deleteAttendeeMutation.mutate(attendee.id)}
+                                disabled={deleteAttendeeMutation.isPending || updateAttendeeMutation.isPending}
+                              >
+                                <Trash2 className="h-3 w-3" /> {t("common.delete")}
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* TEAMS TAB */}
+          <TabsContent value="teams" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif">Alta de equipos participantes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Titulo de equipo / nombre del pintxo</Label>
+                  <Input value={newTeamTitle} onChange={(e) => setNewTeamTitle(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Miembros del equipo (asistentes)</Label>
+                  {availableAttendeesForNewTeam.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No hay asistentes disponibles: todos ya estan asignados a un equipo.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-3 rounded-lg border">
+                      {availableAttendeesForNewTeam.map((attendee) => (
+                        <label key={attendee.id} className="flex items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={newTeamMemberIds.includes(attendee.id)}
+                            onCheckedChange={(checked) => toggleNewTeamMember(attendee.id, checked === true)}
+                          />
+                          <span>{attendee.full_name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Button
+                  onClick={() => addParticipantTeamMutation.mutate()}
+                  disabled={
+                    availableAttendeesForNewTeam.length === 0 ||
+                    !newTeamTitle.trim() ||
+                    newTeamMemberIds.length === 0 ||
+                    addParticipantTeamMutation.isPending
+                  }
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" /> Crear equipo
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif">Equipos registrados: {participantTeams.length}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {participantTeams.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No hay equipos todavia. Si acabas de desplegar esto, aplica la nueva migracion de Supabase.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {participantTeams.map((team) => {
+                      const memberIds = participantTeamMembers
+                        .filter((m) => m.team_id === team.id)
+                        .map((m) => m.attendee_id);
+                      const memberNames = attendees
+                        .filter((a) => memberIds.includes(a.id))
+                        .map((a) => a.full_name);
+
+                      return (
+                        <div key={team.id} className="p-3 rounded-lg border bg-card space-y-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold">
+                                Equipo {team.team_number}: {team.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {memberNames.length > 0 ? memberNames.join(", ") : "Sin miembros"}
+                              </p>
+                            </div>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => deleteParticipantTeamMutation.mutate(team.id)}
+                              disabled={deleteParticipantTeamMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3" /> {t("common.delete")}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
