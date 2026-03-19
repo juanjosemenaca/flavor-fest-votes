@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Plus,
   Minus,
@@ -803,17 +804,20 @@ const AdminDashboard = () => {
             </Card>
 
             {accessCodes.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {accessCodes.map((c) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {accessCodes.map((c) => {
+                  const voteUrl = `${window.location.origin}/votar?code=${c.code}`;
+                  return (
                   <div
                     key={c.id}
-                    className={`text-center p-2 rounded-lg border font-mono text-sm space-y-2 ${
+                    className={`text-center p-3 rounded-lg border font-mono text-sm space-y-2 flex flex-col items-center ${
                       c.used
-                        ? "bg-destructive text-destructive-foreground border-destructive/70"
+                        ? "bg-destructive/20 border-destructive/50"
                         : "bg-card"
                     }`}
                   >
-                    <div>{c.code}</div>
+                    <QRCodeSVG value={voteUrl} size={80} level="M" className="mx-auto" />
+                    <div className={`font-semibold ${c.used ? "text-destructive" : ""}`}>{c.code}</div>
                     {c.used && (
                       <Button
                         size="sm"
@@ -826,7 +830,8 @@ const AdminDashboard = () => {
                       </Button>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   validateAccessCode,
@@ -20,10 +21,13 @@ import { toast } from "@/hooks/use-toast";
 
 const Vote = () => {
   const { t } = useI18n();
-  const [code, setCode] = useState("");
+  const [searchParams] = useSearchParams();
+  const codeFromUrl = searchParams.get("code")?.toUpperCase().trim() ?? "";
+  const [code, setCode] = useState(codeFromUrl || "");
   const [accessCodeId, setAccessCodeId] = useState<string | null>(null);
   const [editionId, setEditionId] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
+  const autoValidatedRef = useRef(false);
   const [selectedByCategory, setSelectedByCategory] = useState<Record<string, string | null>>({});
   const queryClient = useQueryClient();
 
@@ -49,6 +53,41 @@ const Vote = () => {
     queryFn: () => fetchVotesForCode(accessCodeId!),
     enabled: !!accessCodeId,
   });
+
+  useEffect(() => {
+    if (!codeFromUrl || autoValidatedRef.current || accessCodeId) return;
+    autoValidatedRef.current = true;
+    setCode(codeFromUrl);
+    setValidating(true);
+    validateAccessCode(codeFromUrl)
+      .then((result) => {
+        if (result.ok) {
+          setAccessCodeId(result.data.id);
+          setEditionId(result.data.edition_id ?? null);
+          toast({ title: t("vote.welcomeTitle"), description: t("vote.welcomeDescription") });
+        } else if (result.reason === "used") {
+          toast({
+            title: t("vote.codeUsedTitle"),
+            description: t("vote.codeUsedDescription"),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: t("vote.invalidCodeTitle"),
+            description: t("vote.invalidCodeDescription"),
+            variant: "destructive",
+          });
+        }
+      })
+      .catch(() => {
+        toast({
+          title: t("common.error"),
+          description: t("vote.validationErrorDescription"),
+          variant: "destructive",
+        });
+      })
+      .finally(() => setValidating(false));
+  }, [codeFromUrl, accessCodeId, t]);
 
   useEffect(() => {
     if (!accessCodeId) return;
