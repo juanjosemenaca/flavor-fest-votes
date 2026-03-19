@@ -56,21 +56,23 @@ const Index = () => {
             <h1 className="text-4xl md:text-5xl font-vasca font-bold text-foreground tracking-wide">
               {contestName}
             </h1>
-            <Link to="/votar" className="ml-5">
-              <Button className="gap-2">
-                <LogIn className="h-4 w-4" />
-                {t("nav.vote")}
-              </Button>
-            </Link>
+            <div className="ml-5 flex items-center gap-2">
+              <Link to="/votar">
+                <Button className="gap-2">
+                  <LogIn className="h-4 w-4" />
+                  {t("nav.vote")}
+                </Button>
+              </Link>
+              <Link to="/fotos">
+                <Button variant="outline" className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200 hover:border-orange-300">
+                  <Camera className="h-4 w-4" />
+                  {t("nav.photos")}
+                </Button>
+              </Link>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <LanguageSelector />
-            <Link to="/fotos">
-              <Button variant="outline" className="gap-2">
-                <Camera className="h-4 w-4" />
-                {t("nav.photos")}
-              </Button>
-            </Link>
             {settings?.results_published && (
               <Link to="/resultados">
                 <Button variant="outline" className="gap-2">
