@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { fetchDishes, fetchContestSettings, fetchRandomEventPhotos } from "@/lib/supabase-helpers";
+import { fetchCurrentEdition, fetchDishes, fetchContestSettings, fetchRandomEventPhotos } from "@/lib/supabase-helpers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import GildaLogo from "@/components/GildaLogo";
@@ -32,9 +32,15 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [eventPhotos]);
 
+  const { data: currentEdition } = useQuery({
+    queryKey: ["edition-current"],
+    queryFn: fetchCurrentEdition,
+  });
+
   const { data: dishes = [] } = useQuery({
-    queryKey: ["dishes"],
-    queryFn: fetchDishes,
+    queryKey: ["dishes", currentEdition?.id ?? "none"],
+    queryFn: () => fetchDishes(currentEdition?.id ?? undefined),
+    enabled: currentEdition !== undefined,
   });
 
   const { data: settings } = useQuery({

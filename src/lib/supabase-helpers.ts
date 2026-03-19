@@ -6,6 +6,7 @@ export type Edition = {
   contest_name: string;
   voting_open: boolean;
   results_published: boolean;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -43,10 +44,13 @@ export async function fetchEditionByYear(year: number): Promise<Edition | null> 
   return data;
 }
 
-/** Fetch current edition (most recent year). Falls back to contest_settings if editions not yet migrated. */
+/** Fetch current edition (active one, or most recent). Falls back to contest_settings if editions not yet migrated. */
 export async function fetchCurrentEdition(): Promise<Edition | null> {
   const editions = await fetchEditions();
-  if (editions.length > 0) return editions[0];
+  if (editions.length > 0) {
+    const active = editions.find((e) => e.is_active);
+    return active ?? editions[0];
+  }
   // Fallback: contest_settings (pre-migration)
   const { data, error } = await supabase
     .from("contest_settings")
@@ -106,7 +110,7 @@ export async function validateAccessCode(
   return { ok: true, data } as AccessCodeValidationResult;
 }
 
-/** Fetch dishes for an edition. Uses current edition if editionId not provided. Falls back to all dishes if current edition has none. */
+/** Fetch dishes for an edition. Uses current edition if editionId not provided. Solo muestra pintxos de la edición seleccionada. */
 export async function fetchDishes(editionId?: string) {
   let q = supabase.from("dishes").select("*").order("created_at", { ascending: true });
   if (editionId) {
@@ -117,16 +121,7 @@ export async function fetchDishes(editionId?: string) {
   }
   const { data, error } = await q;
   if (error) throw error;
-  const dishes = data ?? [];
-  if (dishes.length > 0) return dishes;
-  if (!editionId) {
-    const { data: allData, error: allError } = await supabase
-      .from("dishes")
-      .select("*")
-      .order("created_at", { ascending: true });
-    if (!allError && (allData?.length ?? 0) > 0) return allData ?? [];
-  }
-  return dishes;
+  return data ?? [];
 }
 
 /** Fetch categories for an edition. Uses current edition if editionId not provided. */
@@ -225,13 +220,28 @@ export async function uploadEventPhoto(file: File, editionId?: string) {
   return url;
 }
 
-/** Fetch random event photos for carousel (3-4). Excludes hidden. */
+/** Fetch random event photos for carousel. Excludes hidden. Muestra fotos de la edición activa + fotos sin edición. Fallback: si no hay con filtro, devuelve todas. */
 export async function fetchRandomEventPhotos(count = 4, editionId?: string) {
+  const edition = editionId ? null : await fetchCurrentEdition();
+  const targetEditionId = editionId ?? edition?.id;
+
   let q = supabase.from("event_photos").select("storage_path").eq("is_hidden", false);
-  if (editionId) q = q.eq("edition_id", editionId);
+  if (targetEditionId) {
+    q = q.or(`edition_id.eq.${targetEditionId},edition_id.is.null`);
+  }
   const { data, error } = await q;
   if (error) throw error;
-  const all = data ?? [];
+  let all = data ?? [];
+
+  // Fallback: si no hay fotos con filtro de edición, intentar sin filtro (todas)
+  if (all.length === 0 && targetEditionId) {
+    const { data: fallback } = await supabase
+      .from("event_photos")
+      .select("storage_path")
+      .eq("is_hidden", false);
+    all = fallback ?? [];
+  }
+
   const shuffled = [...all].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, Math.min(count, shuffled.length));
   return selected.map((p) => getEventPhotoUrl(p.storage_path));

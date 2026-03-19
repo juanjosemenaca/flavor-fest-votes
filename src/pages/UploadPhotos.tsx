@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { uploadEventPhoto } from "@/lib/supabase-helpers";
+import { useQuery } from "@tanstack/react-query";
+import { uploadEventPhoto, fetchCurrentEdition } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import GildaLogo from "@/components/GildaLogo";
@@ -14,6 +15,7 @@ const MAX_SIZE_MB = 5;
 
 const UploadPhotos = () => {
   const { t } = useI18n();
+  const { data: edition } = useQuery({ queryKey: ["current-edition"], queryFn: fetchCurrentEdition });
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(0);
@@ -43,7 +45,7 @@ const UploadPhotos = () => {
     let ok = 0;
     for (let i = 0; i < files.length; i++) {
       try {
-        await uploadEventPhoto(files[i]);
+        await uploadEventPhoto(files[i], edition?.id);
         ok++;
         setUploaded(ok);
       } catch (err) {

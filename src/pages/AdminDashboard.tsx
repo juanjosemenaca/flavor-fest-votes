@@ -528,6 +528,26 @@ const AdminDashboard = () => {
     onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
 
+  const setActiveEditionMutation = useMutation({
+    mutationFn: async (editionIdToActivate: string) => {
+      const { error: deactivate } = await supabase
+        .from("editions")
+        .update({ is_active: false })
+        .eq("is_active", true);
+      if (deactivate) throw deactivate;
+      const { error: activate } = await supabase.from("editions").update({ is_active: true }).eq("id", editionIdToActivate);
+      if (activate) throw activate;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["editions"] });
+      queryClient.invalidateQueries({ queryKey: ["edition-current"] });
+      queryClient.invalidateQueries({ queryKey: ["dishes"] });
+      queryClient.invalidateQueries({ queryKey: ["event-photos-carousel"] });
+      toast({ title: "Edición activa en la landing" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
   const createEditionMutation = useMutation({
     mutationFn: async (year: number) => {
       const { error } = await supabase.from("editions").insert({
@@ -595,17 +615,28 @@ const AdminDashboard = () => {
             <h1 className="text-xl font-serif font-bold">{t("admin.title")}</h1>
             <div className="flex items-center gap-2">
               {editions.length > 0 && (
-                <select
-                  className="h-9 rounded-md border border-input bg-background px-3 text-sm font-medium"
-                  value={effectiveYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                >
-                  {editions.map((e) => (
-                    <option key={e.id} value={e.year}>
-                      {e.year}
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm font-medium"
+                    value={effectiveYear}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  >
+                    {editions.map((e) => (
+                      <option key={e.id} value={e.year}>
+                        {e.year}
+                        {(e as { is_active?: boolean }).is_active ? " ✓" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => editionId && setActiveEditionMutation.mutate(editionId)}
+                    disabled={setActiveEditionMutation.isPending || !editionId || (editions.find((e) => e.id === editionId) as { is_active?: boolean })?.is_active}
+                  >
+                    Mostrar en landing
+                  </Button>
+                </>
               )}
               <div className="flex items-center gap-1">
                 <Input
