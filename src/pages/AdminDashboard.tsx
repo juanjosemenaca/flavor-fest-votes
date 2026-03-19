@@ -30,6 +30,7 @@ import {
   KeyRound,
   Settings,
   Copy,
+  Users,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { Session } from "@supabase/supabase-js";
@@ -75,6 +76,23 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from("access_codes").select("*").order("created_at", { ascending: false });
       if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!session,
+  });
+
+  const { data: attendees = [] } = useQuery({
+    queryKey: ["attendees"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("attendees")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        // Keep admin functional even if migration has not been applied yet.
+        if ((error as { code?: string }).code === "PGRST205") return [];
+        throw error;
+      }
       return data ?? [];
     },
     enabled: !!session,
@@ -147,6 +165,12 @@ const AdminDashboard = () => {
 
   // --- Access Code Management ---
   const [numCodes, setNumCodes] = useState(10);
+  const [newAttendee, setNewAttendee] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    notes: "",
+  });
 
   const generateCodesMutation = useMutation({
     mutationFn: async () => {
@@ -181,6 +205,39 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ["access-codes"] });
       queryClient.invalidateQueries({ queryKey: ["all-votes"] });
       toast({ title: t("admin.codes.reopenedTitle"), description: t("admin.codes.reopenedDescription") });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const addAttendeeMutation = useMutation({
+    mutationFn: async () => {
+      const fullName = newAttendee.fullName.trim();
+      if (!fullName) return;
+
+      const { error } = await supabase.from("attendees").insert({
+        full_name: fullName,
+        email: newAttendee.email.trim() || null,
+        phone: newAttendee.phone.trim() || null,
+        notes: newAttendee.notes.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendees"] });
+      setNewAttendee({ fullName: "", email: "", phone: "", notes: "" });
+      toast({ title: "Asistente anadido" });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const deleteAttendeeMutation = useMutation({
+    mutationFn: async (attendeeId: string) => {
+      const { error } = await supabase.from("attendees").delete().eq("id", attendeeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendees"] });
+      toast({ title: "Asistente eliminado" });
     },
     onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
@@ -289,6 +346,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="dishes" className="gap-1"><GildaLogo className="h-4 w-4" /> {t("admin.tab.dishes")}</TabsTrigger>
             <TabsTrigger value="categories" className="gap-1"><Tag className="h-4 w-4" /> {t("admin.tab.categories")}</TabsTrigger>
             <TabsTrigger value="codes" className="gap-1"><KeyRound className="h-4 w-4" /> {t("admin.tab.codes")}</TabsTrigger>
+            <TabsTrigger value="attendees" className="gap-1"><Users className="h-4 w-4" /> Asistentes</TabsTrigger>
             <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> {t("admin.tab.results")}</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1"><Settings className="h-4 w-4" /> {t("admin.tab.settings")}</TabsTrigger>
           </TabsList>
@@ -448,6 +506,93 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* ATTENDEES TAB */}
+          <TabsContent value="attendees" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif">Alta de asistentes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Nombre completo</Label>
+                    <Input
+                      value={newAttendee.fullName}
+                      onChange={(e) => setNewAttendee((prev) => ({ ...prev, fullName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Email (opcional)</Label>
+                    <Input
+                      type="email"
+                      value={newAttendee.email}
+                      onChange={(e) => setNewAttendee((prev) => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Telefono (opcional)</Label>
+                    <Input
+                      value={newAttendee.phone}
+                      onChange={(e) => setNewAttendee((prev) => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Notas (opcional)</Label>
+                    <Input
+                      value={newAttendee.notes}
+                      onChange={(e) => setNewAttendee((prev) => ({ ...prev, notes: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <Button
+                  onClick={() => addAttendeeMutation.mutate()}
+                  disabled={!newAttendee.fullName.trim() || addAttendeeMutation.isPending}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" /> Anadir asistente
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif">Asistentes registrados: {attendees.length}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {attendees.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No hay asistentes todavia. Si acabas de desplegar esto, aplica la nueva migracion de Supabase.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {attendees.map((attendee) => (
+                      <div key={attendee.id} className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border bg-card">
+                        <div>
+                          <p className="font-medium">{attendee.full_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {attendee.email || "-"} | {attendee.phone || "-"}
+                          </p>
+                          {attendee.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">{attendee.notes}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => deleteAttendeeMutation.mutate(attendee.id)}
+                          disabled={deleteAttendeeMutation.isPending}
+                        >
+                          <Trash2 className="h-3 w-3" /> {t("common.delete")}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* RESULTS TAB */}

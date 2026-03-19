@@ -14,7 +14,7 @@
        Change only this line to swap style globally in top menu title. */
     --font-vasca: "IM Fell English SC";
 
-    --background: 24 14% 6%;
+    --background: 0 0% 0%;
     --foreground: 35 20% 92%;
 
     --card: 24 12% 10%;
@@ -60,7 +60,7 @@
   }
 
   .dark {
-    --background: 25 20% 10%;
+    --background: 0 0% 0%;
     --foreground: 35 20% 90%;
 
     --card: 25 20% 14%;

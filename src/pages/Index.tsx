@@ -27,13 +27,19 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-black sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <GildaLogo className="h-16 w-16 text-primary" />
             <h1 className="text-4xl md:text-5xl font-vasca font-bold text-foreground tracking-wide">
               {contestName}
             </h1>
+            <Link to="/votar" className="ml-5">
+              <Button className="gap-2">
+                <LogIn className="h-4 w-4" />
+                {t("nav.vote")}
+              </Button>
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             <LanguageSelector />
@@ -45,12 +51,6 @@ const Index = () => {
                 </Button>
               </Link>
             )}
-            <Link to="/votar">
-              <Button className="gap-2">
-                <LogIn className="h-4 w-4" />
-                {t("nav.vote")}
-              </Button>
-            </Link>
             <Link to="/admin">
               <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
                 {t("nav.admin")}
