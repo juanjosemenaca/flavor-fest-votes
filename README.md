@@ -4,7 +4,7 @@ Plataforma de votación y bases del concurso (Vite + React + Supabase).
 
 ## Versión
 
-`1.0.5` — ver `package.json`.
+Ver `package.json` (p. ej. `1.0.6`).
 
 ## Variables de entorno
 
@@ -25,6 +25,28 @@ Ruta SPA: **`/bases`** (ej. `https://www.aitortilla.com/bases`). Si no ves cambi
 
 Dominio canónico en Vercel: **`www.aitortilla.com`** (añade el dominio en el proyecto y DNS). `aitortilla.com` sin `www` redirige a `www` vía `vercel.json`.
 
-## Despliegue (Vercel)
+## Publicar la web (GitHub + Vercel + Supabase)
 
-Con el repo conectado a Vercel, un `git push` a `main` despliega la build de producción automáticamente.
+Flujo habitual:
+
+1. **Código en GitHub**  
+   Haz commit de los cambios y súbelos a la rama `main`:
+   ```bash
+   git add -A
+   git commit -m "descripción del cambio"
+   git push origin main
+   ```
+
+2. **Frontend (Vercel u otro host)**  
+   Con el repositorio conectado a **Vercel**, cada push a `main` suele lanzar un **deploy de producción** solo. Revisa en el dashboard de Vercel → *Deployments* que el build sea correcto y que las variables de entorno estén definidas.
+
+3. **Base de datos (Supabase)**  
+   Los cambios de esquema van en `supabase/migrations/`. Tras un push **solo de frontend** no suele hacer falta tocar la base. Si incorporas o modificas migraciones:
+   - Con **Supabase CLI** (proyecto enlazado): `supabase link` y `supabase db push`, o  
+   - En el **Dashboard** de Supabase → SQL Editor, aplicar manualmente las migraciones pendientes **en orden**.  
+   Si producción ya tiene el esquema al día, no repitas migraciones antiguas.
+
+4. **Comprobar**  
+   Abre la URL pública (p. ej. `https://www.aitortilla.com`), recarga forzada o ventana privada si no ves cambios (caché).
+
+En la práctica, el paso 2 es el despliegue automático en Vercel cuando `main` recibe el push.
