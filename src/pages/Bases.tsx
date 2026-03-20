@@ -40,6 +40,9 @@ function GoogleMapsPreview() {
 
 const emphasisClass = "font-bold text-lg sm:text-xl text-foreground";
 
+/** Destaque dentro de párrafo (sección 3: título/nombre del pintxo) */
+const p3TitleEmphasisClass = "font-bold text-base sm:text-lg text-foreground";
+
 const categoryLabelClass = "font-bold uppercase text-foreground";
 
 const BASES_S4_CATEGORY_ROWS = [
@@ -118,7 +121,16 @@ const Bases = () => {
                     <span className={emphasisClass}>{t("bases.s3.p2emphasis")}</span>
                     {t("bases.s3.p2b")}
                   </p>
-                  <p className="whitespace-pre-line">{t("bases.s3.p3")}</p>
+                  <p>
+                    {t("bases.s3.p3a")}
+                    <span className={p3TitleEmphasisClass}>{t("bases.s3.p3emphasis")}</span>
+                    {t("bases.s3.p3b")}
+                  </p>
+                  <p>
+                    {t("bases.s3.p3c1")}
+                    <span className={p3TitleEmphasisClass}>{t("bases.s3.p3cEmphasis")}</span>
+                    {t("bases.s3.p3c2")}
+                  </p>
                   <p className="whitespace-pre-line">{t("bases.s3.p4")}</p>
                   <p className={`${emphasisClass} leading-relaxed text-center`}>{t("bases.s3.p5")}</p>
                 </div>

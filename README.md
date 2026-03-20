@@ -4,7 +4,7 @@ Plataforma de votación y bases del concurso (Vite + React + Supabase).
 
 ## Versión
 
-Ver `package.json` (p. ej. `1.0.7`).
+Ver `package.json` (p. ej. `1.0.8`).
 
 ## Variables de entorno
 

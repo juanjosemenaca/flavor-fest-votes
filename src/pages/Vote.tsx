@@ -16,11 +16,12 @@ import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
 import { ArrowLeft, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
 const Vote = () => {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const codeFromUrl = searchParams.get("code")?.toUpperCase().trim() ?? "";
   const [code, setCode] = useState(codeFromUrl || "");
@@ -156,8 +157,8 @@ const Vote = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["votes", accessCodeId] });
       queryClient.invalidateQueries({ queryKey: ["access-codes"] });
-      const savedToast = toast({ title: t("vote.votesSentTitle") });
-      setTimeout(() => savedToast.dismiss(), 2000);
+      toast({ title: t("vote.votesSentTitle") });
+      window.setTimeout(() => navigate("/", { replace: true }), 1200);
     },
     onError: () => {
       toast({

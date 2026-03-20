@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { uploadEventPhoto, fetchCurrentEdition } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ const MAX_SIZE_MB = 5;
 
 const UploadPhotos = () => {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { data: edition } = useQuery({ queryKey: ["current-edition"], queryFn: fetchCurrentEdition });
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -96,6 +97,7 @@ const UploadPhotos = () => {
       toast({ title: `${ok} foto${ok > 1 ? "s" : ""} subida${ok > 1 ? "s" : ""} correctamente` });
       setFiles([]);
       setUploaded(0);
+      window.setTimeout(() => navigate("/", { replace: true }), 1200);
     }
   };
 
