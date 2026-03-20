@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
+import { PHOTOS_UPLOAD_ENABLED } from "@/config/features";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Plus,
@@ -35,6 +36,7 @@ import {
   KeyRound,
   Settings,
   Copy,
+  Printer,
   Users,
   Pencil,
   Camera,
@@ -42,6 +44,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import type { Session } from "@supabase/supabase-js";
 
 const AdminDashboard = () => {
@@ -826,9 +829,16 @@ const AdminDashboard = () => {
                     <Plus className="h-4 w-4" /> {t("admin.codes.generateButton")}
                   </Button>
                   {accessCodes.length > 0 && (
-                    <Button variant="outline" onClick={copyAllCodes} className="gap-2">
-                      <Copy className="h-4 w-4" /> {t("admin.codes.copyAll")}
-                    </Button>
+                    <>
+                      <Button variant="outline" asChild className="gap-2">
+                        <Link to={`/admin/print-codes?year=${effectiveYear}`}>
+                          <Printer className="h-4 w-4" /> {t("admin.codes.printButton")}
+                        </Link>
+                      </Button>
+                      <Button variant="outline" onClick={copyAllCodes} className="gap-2">
+                        <Copy className="h-4 w-4" /> {t("admin.codes.copyAll")}
+                      </Button>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -841,19 +851,37 @@ const AdminDashboard = () => {
                   return (
                   <div
                     key={c.id}
-                    className={`text-center p-3 rounded-lg border font-mono text-sm space-y-2 flex flex-col items-center ${
+                    className={cn(
+                      "text-center p-3 rounded-lg border font-mono text-sm space-y-2 flex flex-col items-center transition-colors",
                       c.used
-                        ? "bg-destructive/20 border-destructive/50"
-                        : "bg-card"
-                    }`}
+                        ? "border-dashed border-muted-foreground/45 bg-muted/40 text-muted-foreground"
+                        : "border-border bg-card text-foreground",
+                    )}
                   >
-                    <QRCodeSVG value={voteUrl} size={80} level="M" className="mx-auto" />
-                    <div className={`font-semibold ${c.used ? "text-destructive" : ""}`}>{c.code}</div>
+                    <div
+                      className={cn(
+                        "relative rounded-md p-1",
+                        c.used && "bg-muted/60 ring-1 ring-inset ring-muted-foreground/25",
+                      )}
+                    >
+                      <QRCodeSVG
+                        value={voteUrl}
+                        size={80}
+                        level="M"
+                        className={cn("mx-auto block", c.used && "opacity-[0.45] grayscale")}
+                      />
+                    </div>
+                    {c.used && (
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t("admin.codes.codeVoided")}
+                      </p>
+                    )}
+                    <div className={cn("font-semibold", c.used && "text-muted-foreground")}>{c.code}</div>
                     {c.used && (
                       <Button
                         size="sm"
-                        variant="secondary"
-                        className="w-full text-xs"
+                        variant="outline"
+                        className="w-full border-muted-foreground/40 text-xs text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                         onClick={() => reopenCodeMutation.mutate(c.id)}
                         disabled={reopenCodeMutation.isPending}
                       >
@@ -1224,7 +1252,17 @@ const AdminDashboard = () => {
               <CardContent>
                 {eventPhotos.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No hay fotos. Los asistentes pueden subirlas desde <Link to="/fotos" className="text-primary underline">/fotos</Link>.
+                    {PHOTOS_UPLOAD_ENABLED ? (
+                      <>
+                        {t("admin.photosEmptyHelpPrefix")}
+                        <Link to="/fotos" className="text-primary underline">
+                          /fotos
+                        </Link>
+                        {t("admin.photosEmptyHelpSuffix")}
+                      </>
+                    ) : (
+                      t("admin.photosEmptyUploadDisabled")
+                    )}
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

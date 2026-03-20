@@ -9,6 +9,7 @@ import Results from "./pages/Results";
 import UploadPhotos from "./pages/UploadPhotos";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import PrintAccessCodes from "./pages/PrintAccessCodes";
 import NotFound from "./pages/NotFound";
 import Bases from "./pages/Bases";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/bases" element={<Bases />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/print-codes" element={<PrintAccessCodes />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

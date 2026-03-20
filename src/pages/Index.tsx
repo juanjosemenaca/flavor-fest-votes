@@ -8,6 +8,7 @@ import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
 import { Trophy, LogIn, Camera, FileText } from "lucide-react";
+import { PHOTOS_UPLOAD_ENABLED } from "@/config/features";
 
 const Index = () => {
   const { t } = useI18n();
@@ -58,50 +59,95 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-black sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <GildaLogo className="h-16 w-16 text-primary" />
-            <h1 className="text-4xl md:text-5xl font-vasca font-bold text-foreground tracking-wide">
-              {contestName}
-            </h1>
-            <div className="ml-2 sm:ml-5 flex flex-wrap items-center gap-2">
-              <Link to="/votar">
-                <Button className="gap-2">
-                  <LogIn className="h-4 w-4" />
-                  {t("nav.vote")}
-                </Button>
-              </Link>
-              <Link to="/fotos">
-                <Button variant="outline" className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200 hover:border-orange-300">
-                  <Camera className="h-4 w-4" />
-                  {t("nav.photos")}
-                </Button>
-              </Link>
-              <Link to="/bases">
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  <span className="max-w-[9rem] sm:max-w-none truncate sm:whitespace-normal">{t("nav.bases")}</span>
-                </Button>
-              </Link>
+      {/* Header: marca + utilidades · barra de navegación principal */}
+      <header className="sticky top-0 z-50 border-b border-border/80 bg-black/90 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.85)] backdrop-blur-md supports-[backdrop-filter]:bg-black/75">
+        <div className="container mx-auto max-w-6xl px-4">
+          {/* Fila 1: marca (logo + título) centrada en la web · utilidades fijas a la derecha */}
+          <div className="relative min-h-[4.25rem] py-4 sm:min-h-[4.75rem]">
+            <div className="flex justify-center px-2 sm:px-3">
+              <div className="flex max-w-[min(100%,calc(100%-7.5rem))] items-center gap-3 sm:max-w-[min(100%,calc(100%-9rem))] sm:gap-4">
+                <Link
+                  to="/admin"
+                  className="inline-flex shrink-0 rounded-md outline-none ring-offset-2 ring-offset-background transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label={t("nav.admin")}
+                >
+                  <GildaLogo decorative className="h-12 w-12 text-primary sm:h-16 sm:w-16" />
+                </Link>
+                <div className="min-w-0 text-left">
+                  <p className="mb-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground sm:text-xs">
+                    {t("nav.brandEyebrow")}
+                  </p>
+                  <h1 className="font-vasca text-3xl font-bold leading-tight tracking-wide text-foreground sm:text-4xl md:text-5xl">
+                    {contestName}
+                  </h1>
+                </div>
+              </div>
+            </div>
+            <div className="absolute right-0 top-1/2 z-10 flex max-w-[40%] flex-wrap items-center justify-end gap-1.5 sm:top-1/2 sm:max-w-none sm:gap-2">
+              <LanguageSelector className="shrink-0" />
+              {settings?.results_published && (
+                <Link to="/resultados" className="shrink-0" aria-label={t("nav.results")}>
+                  <Button variant="outline" size="sm" className="h-9 gap-1.5 px-2.5 sm:h-10 sm:gap-2 sm:px-3">
+                    <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">{t("nav.results")}</span>
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <LanguageSelector />
-            {settings?.results_published && (
-              <Link to="/resultados">
-                <Button variant="outline" className="gap-2">
-                  <Trophy className="h-4 w-4" />
-                  {t("nav.results")}
-                </Button>
-              </Link>
-            )}
-            <Link to="/admin">
-              <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
-                {t("nav.admin")}
-              </Button>
-            </Link>
+
+          {/* Fila 2: acciones principales (misma alineación centrada que la marca arriba) */}
+          <div className="border-t border-border/50 bg-muted/25 px-2 py-2 sm:px-3 sm:py-2.5">
+            <div className="flex justify-center px-2 sm:px-3">
+              <div className="flex max-w-[min(100%,calc(100%-4rem))] justify-center min-w-0 sm:max-w-[min(100%,calc(100%-5rem))]">
+                <div className="w-full min-w-0 max-w-[23rem] sm:max-w-md">
+                  <nav
+                    className="grid w-full grid-cols-3 gap-1 sm:gap-1.5"
+                    aria-label={t("nav.primaryNavAria")}
+                  >
+                    <Link to="/votar" className="flex min-w-0">
+                      <Button className="h-8 w-full min-w-0 gap-0.5 px-1 text-xs shadow-sm sm:h-9 sm:gap-1 sm:px-1.5 sm:text-sm">
+                        <LogIn className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                        <span className="min-w-0 truncate">{t("nav.vote")}</span>
+                      </Button>
+                    </Link>
+                    {PHOTOS_UPLOAD_ENABLED ? (
+                      <Link to="/fotos" className="flex min-w-0">
+                        <Button
+                          variant="outline"
+                          className="h-8 w-full min-w-0 gap-0.5 border-orange-400/40 bg-orange-950/40 px-1 text-xs text-orange-100 hover:bg-orange-900/50 hover:text-orange-50 sm:h-9 sm:gap-1 sm:px-1.5 sm:text-sm"
+                        >
+                          <Camera className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          <span className="min-w-0 truncate">{t("nav.photos")}</span>
+                        </Button>
+                      </Link>
+                    ) : (
+                      <span className="flex min-w-0 w-full" title={t("nav.photosDisabledHint")}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled
+                          aria-disabled
+                          className="h-8 w-full min-w-0 gap-0.5 border-orange-400/40 bg-orange-950/40 px-1 text-xs text-orange-100 hover:bg-orange-900/50 hover:text-orange-50 disabled:opacity-100 sm:h-9 sm:gap-1 sm:px-1.5 sm:text-sm"
+                        >
+                          <Camera className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                          <span className="min-w-0 truncate">{t("nav.photos")}</span>
+                        </Button>
+                      </span>
+                    )}
+                    <Link to="/bases" className="flex min-w-0">
+                      <Button
+                        variant="outline"
+                        className="h-8 w-full min-w-0 gap-0.5 border-border bg-background/50 px-1 text-xs hover:bg-muted/80 sm:h-9 sm:gap-1 sm:px-1.5 sm:text-sm"
+                      >
+                        <FileText className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                        <span className="min-w-0 truncate">{t("nav.bases")}</span>
+                      </Button>
+                    </Link>
+                  </nav>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>

@@ -17,6 +17,8 @@ const translations: TranslationDict = {
     "nav.back": "Volver",
     "nav.backHome": "Volver al inicio",
     "nav.language": "Idioma",
+    "nav.brandEyebrow": "Concurso",
+    "nav.primaryNavAria": "Menú principal",
 
     "common.by": "por {author}",
     "common.sendVotes": "Enviar votos",
@@ -36,7 +38,10 @@ const translations: TranslationDict = {
     "photos.select": "Seleccionar fotos",
     "photos.upload": "Subir fotos",
     "photos.uploading": "Subiendo...",
+    "photos.uploadDisabledTitle": "Subida de fotos no disponible",
+    "photos.uploadDisabledBody": "La subida de fotos estara activa el dia del evento.",
     "nav.photos": "Subir fotos",
+    "nav.photosDisabledHint": "Disponible el dia del evento",
     "nav.bases": "Bases y términos",
 
     "bases.title": "Bases y términos del concurso",
@@ -159,6 +164,13 @@ const translations: TranslationDict = {
     "admin.codes.reopening": "Reabriendo...",
     "admin.codes.reopenedTitle": "Codigo reabierto",
     "admin.codes.reopenedDescription": "Ya puede volver a votar desde cero.",
+    "admin.codes.codeVoided": "Codigo anulado",
+    "admin.codes.printBack": "Volver al panel",
+    "admin.codes.printButton": "Imprimir hoja",
+    "admin.codes.printHint": "En el cuadro de impresion del navegador puedes elegir impresora o Guardar como PDF.",
+    "admin.codes.printSubtitle": "Codigos de acceso al voto (un recorte por asistente)",
+    "admin.codes.printYear": "Edicion {year}",
+    "admin.codes.printEmpty": "No hay codigos generados para esta edicion.",
 
     "admin.results.summary": "Total de votos: {total} | Likes: {likes}",
     "admin.results.showLegal": "mostrar votos legales",
@@ -170,6 +182,10 @@ const translations: TranslationDict = {
     "admin.settings.votingOpenDescription": "Permite que los votantes emitan sus votos",
     "admin.settings.publishResultsTitle": "Publicar resultados",
     "admin.settings.publishResultsDescription": "Hace visibles los resultados en la pagina publica",
+
+    "admin.photosEmptyHelpPrefix": "No hay fotos. Los asistentes pueden subirlas desde ",
+    "admin.photosEmptyHelpSuffix": ".",
+    "admin.photosEmptyUploadDisabled": "No hay fotos. La subida desde la web estara activa el dia del evento.",
 
     "notFound.message": "Oops! Pagina no encontrada",
     "notFound.returnHome": "Volver al inicio",
@@ -186,6 +202,8 @@ const translations: TranslationDict = {
     "nav.back": "Tornar",
     "nav.backHome": "Tornar a l'inici",
     "nav.language": "Idioma",
+    "nav.brandEyebrow": "Concurs",
+    "nav.primaryNavAria": "Menú principal",
 
     "common.by": "per {author}",
     "common.sendVotes": "Enviar vots",
@@ -205,7 +223,10 @@ const translations: TranslationDict = {
     "photos.select": "Seleccionar fotos",
     "photos.upload": "Pujar fotos",
     "photos.uploading": "Pujant...",
+    "photos.uploadDisabledTitle": "Pujada de fotos no disponible",
+    "photos.uploadDisabledBody": "La pujada de fotos estara activa el dia de l'esdeveniment.",
     "nav.photos": "Pujar fotos",
+    "nav.photosDisabledHint": "Disponible el dia de l'esdeveniment",
     "nav.bases": "Bases i termes",
 
     "bases.title": "Bases i termes del concurs",
@@ -328,6 +349,13 @@ const translations: TranslationDict = {
     "admin.codes.reopening": "Reobrint...",
     "admin.codes.reopenedTitle": "Codi reobert",
     "admin.codes.reopenedDescription": "Ja pot tornar a votar des de zero.",
+    "admin.codes.codeVoided": "Codi anul·lat",
+    "admin.codes.printBack": "Tornar al panell",
+    "admin.codes.printButton": "Imprimir fulla",
+    "admin.codes.printHint": "A la finestra d'impressió pots triar impressora o Desar com a PDF.",
+    "admin.codes.printSubtitle": "Codis d'accés al vot (un retall per assistent)",
+    "admin.codes.printYear": "Edició {year}",
+    "admin.codes.printEmpty": "No hi ha codis generats per aquesta edició.",
 
     "admin.results.summary": "Total de vots: {total} | Likes: {likes}",
     "admin.results.showLegal": "mostrar vots legals",
@@ -339,6 +367,10 @@ const translations: TranslationDict = {
     "admin.settings.votingOpenDescription": "Permet que els votants emetin els seus vots",
     "admin.settings.publishResultsTitle": "Publicar resultats",
     "admin.settings.publishResultsDescription": "Fa visibles els resultats a la pagina publica",
+
+    "admin.photosEmptyHelpPrefix": "No hi ha fotos. Els assistents les poden pujar des de ",
+    "admin.photosEmptyHelpSuffix": ".",
+    "admin.photosEmptyUploadDisabled": "No hi ha fotos. La pujada des del web estara activa el dia de l'esdeveniment.",
 
     "notFound.message": "Oops! Pagina no trobada",
     "notFound.returnHome": "Tornar a l'inici",
@@ -356,6 +388,8 @@ const translations: TranslationDict = {
     "nav.back": "Back",
     "nav.backHome": "Back to home",
     "nav.language": "Language",
+    "nav.brandEyebrow": "Contest",
+    "nav.primaryNavAria": "Main menu",
 
     "common.by": "by {author}",
     "common.sendVotes": "Submit votes",
@@ -375,7 +409,10 @@ const translations: TranslationDict = {
     "photos.select": "Select photos",
     "photos.upload": "Upload photos",
     "photos.uploading": "Uploading...",
+    "photos.uploadDisabledTitle": "Photo upload not available",
+    "photos.uploadDisabledBody": "Photo uploads will be available on the day of the event.",
     "nav.photos": "Upload photos",
+    "nav.photosDisabledHint": "Available on the day of the event",
     "nav.bases": "Rules and terms",
 
     "bases.title": "Contest rules and terms",
@@ -498,6 +535,13 @@ const translations: TranslationDict = {
     "admin.codes.reopening": "Reopening...",
     "admin.codes.reopenedTitle": "Code reopened",
     "admin.codes.reopenedDescription": "It can vote again from scratch.",
+    "admin.codes.codeVoided": "Code voided",
+    "admin.codes.printBack": "Back to dashboard",
+    "admin.codes.printButton": "Print sheet",
+    "admin.codes.printHint": "In the print dialog you can pick a printer or Save as PDF.",
+    "admin.codes.printSubtitle": "Voting access codes (one slip per attendee)",
+    "admin.codes.printYear": "Edition {year}",
+    "admin.codes.printEmpty": "No codes generated for this edition.",
 
     "admin.results.summary": "Total votes: {total} | Likes: {likes}",
     "admin.results.showLegal": "show legal votes",
@@ -509,6 +553,10 @@ const translations: TranslationDict = {
     "admin.settings.votingOpenDescription": "Allows voters to submit votes",
     "admin.settings.publishResultsTitle": "Publish results",
     "admin.settings.publishResultsDescription": "Makes results visible on the public page",
+
+    "admin.photosEmptyHelpPrefix": "No photos yet. Attendees can upload from ",
+    "admin.photosEmptyHelpSuffix": ".",
+    "admin.photosEmptyUploadDisabled": "No photos yet. Uploads from the website will be available on the day of the event.",
 
     "notFound.message": "Oops! Page not found",
     "notFound.returnHome": "Return to home",
@@ -526,6 +574,8 @@ const translations: TranslationDict = {
     "nav.back": "Itzuli",
     "nav.backHome": "Hasierara itzuli",
     "nav.language": "Hizkuntza",
+    "nav.brandEyebrow": "Lehiaketa",
+    "nav.primaryNavAria": "Menu nagusia",
 
     "common.by": "{author}k egina",
     "common.sendVotes": "Botoak bidali",
@@ -545,7 +595,10 @@ const translations: TranslationDict = {
     "photos.select": "Argazkiak hautatu",
     "photos.upload": "Argazkiak igo",
     "photos.uploading": "Igotzen...",
+    "photos.uploadDisabledTitle": "Argazki igotzea ez dago erabilgarri",
+    "photos.uploadDisabledBody": "Argazkiak igotzea gertaeraren egunean egongo da aktibo.",
     "nav.photos": "Argazkiak igo",
+    "nav.photosDisabledHint": "Gertaeraren egunean erabilgarri",
     "nav.bases": "Oinarriak eta baldintzak",
 
     "bases.title": "Lehiaketaren oinarriak eta baldintzak",
@@ -668,6 +721,13 @@ const translations: TranslationDict = {
     "admin.codes.reopening": "Berrirekitzen...",
     "admin.codes.reopenedTitle": "Kodea berrirekita",
     "admin.codes.reopenedDescription": "Berriro bozka dezake hasieratik.",
+    "admin.codes.codeVoided": "Kodea baliogabetuta",
+    "admin.codes.printBack": "Panelera itzuli",
+    "admin.codes.printButton": "Orria inprimatu",
+    "admin.codes.printHint": "Inprimatzeko leihoan inprimagailua edo PDF gisa gordetzea aukera dezakezu.",
+    "admin.codes.printSubtitle": "Bozketarako sarbide kodeak (partaide bakoitzeko mozketa bat)",
+    "admin.codes.printYear": "{year} edizioa",
+    "admin.codes.printEmpty": "Ez dago koderik sortuta edizio honetarako.",
 
     "admin.results.summary": "Boto guztiak: {total} | Likes: {likes}",
     "admin.results.showLegal": "erakutsi boto legalak",
@@ -679,6 +739,10 @@ const translations: TranslationDict = {
     "admin.settings.votingOpenDescription": "Bozkatzaileei botoak ematea ahalbidetzen du",
     "admin.settings.publishResultsTitle": "Emaitzak argitaratu",
     "admin.settings.publishResultsDescription": "Emaitzak orri publikoan ikusgarri egiten ditu",
+
+    "admin.photosEmptyHelpPrefix": "Ez dago argazkirik. Partaideek hemendik igo ditzakete: ",
+    "admin.photosEmptyHelpSuffix": ".",
+    "admin.photosEmptyUploadDisabled": "Ez dago argazkirik. Webean igotzea gertaeraren egunean egongo da aktibo.",
 
     "notFound.message": "Oops! Orria ez da aurkitu",
     "notFound.returnHome": "Hasierara itzuli",

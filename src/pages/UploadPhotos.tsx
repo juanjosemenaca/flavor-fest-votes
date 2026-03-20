@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { uploadEventPhoto, fetchCurrentEdition } from "@/lib/supabase-helpers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
 import { ArrowLeft, Camera, Upload, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { PHOTOS_UPLOAD_ENABLED } from "@/config/features";
 
 const ACCEPT = "image/jpeg,image/png,image/gif,image/webp";
 const MAX_SIZE_MB = 5;
@@ -37,6 +37,41 @@ const UploadPhotos = () => {
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
+
+  if (!PHOTOS_UPLOAD_ENABLED) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-black sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <h1 className="text-xl font-serif font-bold">{t("photos.title")}</h1>
+            </div>
+            <LanguageSelector />
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-12 max-w-2xl">
+          <Card>
+            <CardContent className="p-8 space-y-4 text-center">
+              <Camera className="h-12 w-12 text-muted-foreground mx-auto opacity-60" aria-hidden />
+              <h2 className="text-xl font-serif font-bold">{t("photos.uploadDisabledTitle")}</h2>
+              <p className="text-muted-foreground text-sm">{t("photos.uploadDisabledBody")}</p>
+              <Link to="/">
+                <Button variant="secondary" className="mt-2">
+                  {t("nav.backHome")}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const handleUpload = async () => {
     if (files.length === 0) return;

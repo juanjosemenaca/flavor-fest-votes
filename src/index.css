@@ -134,3 +134,11 @@
 .font-vasca-pirata {
   font-family: "Pirata One", serif;
 }
+
+/* Hoja de códigos QR (admin → imprimir) */
+@media print {
+  @page {
+    margin: 12mm;
+    size: a4;
+  }
+}

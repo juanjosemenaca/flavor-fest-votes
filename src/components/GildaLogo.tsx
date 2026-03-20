@@ -1,14 +1,17 @@
 type GildaLogoProps = {
   className?: string;
+  /** Solo decorativo: el elemento padre debe tener aria-label (p. ej. enlace a admin) */
+  decorative?: boolean;
 };
 
-const GildaLogo = ({ className }: GildaLogoProps) => {
+const GildaLogo = ({ className, decorative }: GildaLogoProps) => {
   return (
     <svg
       viewBox="0 0 64 64"
       className={className}
-      role="img"
-      aria-label="Logo de calavera chef con cucharas cruzadas"
+      role={decorative ? undefined : "img"}
+      aria-hidden={decorative ? true : undefined}
+      aria-label={decorative ? undefined : "Logo de calavera chef con cucharas cruzadas"}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
