@@ -10,6 +10,7 @@ import UploadPhotos from "./pages/UploadPhotos";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import Bases from "./pages/Bases";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/votar" element={<Vote />} />
           <Route path="/resultados" element={<Results />} />
           <Route path="/fotos" element={<UploadPhotos />} />
+          <Route path="/bases" element={<Bases />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />

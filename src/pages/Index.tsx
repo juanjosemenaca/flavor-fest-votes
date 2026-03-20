@@ -192,6 +192,11 @@ const Index = () => {
             Edición {currentEdition.year} · {dishes.length} pintxo{dishes.length !== 1 ? "s" : ""}
           </p>
         )}
+        <p className="mt-4">
+          <Link to="/bases" className="text-primary hover:underline text-sm font-medium">
+            {t("nav.bases")}
+          </Link>
+        </p>
       </footer>
     </div>
   );
