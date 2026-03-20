@@ -13,6 +13,17 @@
       ],
       "destination": "https://www.aitortilla.eu/$1",
       "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "aitortilla.com"
+        }
+      ],
+      "destination": "https://www.aitortilla.com/$1",
+      "permanent": true
     }
   ],
   "headers": [

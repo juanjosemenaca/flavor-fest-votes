@@ -4,7 +4,7 @@ Plataforma de votación y bases del concurso (Vite + React + Supabase).
 
 ## Versión
 
-`1.0.2` — ver `package.json`.
+`1.0.3` — ver `package.json`.
 
 ## Variables de entorno
 
@@ -21,7 +21,9 @@ Si el esquema ya está al día en producción, no hace falta repetir migraciones
 
 ## Bases del concurso
 
-Ruta SPA: **`/bases`** (ej. `https://www.aitortilla.eu/bases`). Si no ves cambios, prueba recarga forzada o ventana privada (caché del navegador).
+Ruta SPA: **`/bases`** (ej. `https://www.aitortilla.com/bases`). Si no ves cambios, prueba recarga forzada o ventana privada (caché del navegador).
+
+Dominio canónico en Vercel: **`www.aitortilla.com`** (añade el dominio en el proyecto y DNS). `aitortilla.com` sin `www` redirige a `www` vía `vercel.json`.
 
 ## Despliegue (Vercel)
 

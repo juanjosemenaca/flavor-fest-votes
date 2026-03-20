@@ -1,5 +1,5 @@
 Contact: mailto:juanjosemena@inorme.com
-Policy: https://www.aitortilla.eu
+Policy: https://www.aitortilla.com
 Preferred-Languages: es, ca, en, eu
-Canonical: https://www.aitortilla.eu/.well-known/security.txt
+Canonical: https://www.aitortilla.com/.well-known/security.txt
 Expires: 2027-03-18T00:00:00.000Z
