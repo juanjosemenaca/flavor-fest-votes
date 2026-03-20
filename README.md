@@ -4,7 +4,7 @@ Plataforma de votación y bases del concurso (Vite + React + Supabase).
 
 ## Versión
 
-`1.0.1` — ver `package.json`.
+`1.0.2` — ver `package.json`.
 
 ## Variables de entorno
 
@@ -18,6 +18,10 @@ Las migraciones SQL están en `supabase/migrations/`. Para aplicarlas al proyect
 2. **Dashboard**: SQL Editor → ejecutar el contenido de las migraciones pendientes en orden.
 
 Si el esquema ya está al día en producción, no hace falta repetir migraciones antiguas.
+
+## Bases del concurso
+
+Ruta SPA: **`/bases`** (ej. `https://www.aitortilla.eu/bases`). Si no ves cambios, prueba recarga forzada o ventana privada (caché del navegador).
 
 ## Despliegue (Vercel)
 

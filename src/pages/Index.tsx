@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
-import { Trophy, LogIn, Camera } from "lucide-react";
+import { Trophy, LogIn, Camera, FileText } from "lucide-react";
 
 const Index = () => {
   const { t } = useI18n();
@@ -66,7 +66,7 @@ const Index = () => {
             <h1 className="text-4xl md:text-5xl font-vasca font-bold text-foreground tracking-wide">
               {contestName}
             </h1>
-            <div className="ml-5 flex items-center gap-2">
+            <div className="ml-2 sm:ml-5 flex flex-wrap items-center gap-2">
               <Link to="/votar">
                 <Button className="gap-2">
                   <LogIn className="h-4 w-4" />
@@ -77,6 +77,12 @@ const Index = () => {
                 <Button variant="outline" className="gap-2 bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200 hover:border-orange-300">
                   <Camera className="h-4 w-4" />
                   {t("nav.photos")}
+                </Button>
+              </Link>
+              <Link to="/bases">
+                <Button variant="outline" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span className="max-w-[9rem] sm:max-w-none truncate sm:whitespace-normal">{t("nav.bases")}</span>
                 </Button>
               </Link>
             </div>

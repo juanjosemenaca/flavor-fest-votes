@@ -285,7 +285,10 @@ const Vote = () => {
             </Link>
             <h1 className="text-xl font-serif font-bold">{t("vote.headerTitle")}</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm text-muted-foreground">
+            <Link to="/bases" className="text-primary hover:underline text-xs shrink-0 max-w-[7rem] sm:max-w-none truncate">
+              {t("nav.bases")}
+            </Link>
             <LanguageSelector />
             <Check className="h-4 w-4 text-success" />
             {t("vote.selectedCount", { selected: selectedCount, total: categories.length })}
