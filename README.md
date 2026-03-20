@@ -56,6 +56,15 @@ Ruta SPA: **`/bases`** (ej. `https://www.aitortilla.com/bases`). Si no ves cambi
 
 Dominio canónico en Vercel: **`www.aitortilla.com`** (añade el dominio en el proyecto y DNS). `aitortilla.com` sin `www` redirige a `www` vía `vercel.json`.
 
+### Vista previa al compartir (WhatsApp / Facebook)
+
+Meta **cachea mucho** la imagen y el favicon. Tras cambiar `og:image` o el PNG de redes:
+
+1. Abre el [Depurador de compartición de Facebook](https://developers.facebook.com/tools/debug/), pega `https://www.aitortilla.com/` y pulsa **«Volver a extraer»** (varias veces si hace falta).
+2. En **WhatsApp** la miniatura puede tardar **horas** en actualizarse; para probar, comparte la URL con un parámetro nuevo, p. ej. `https://www.aitortilla.com/?t=1`.
+
+La imagen social en producción es **`/aitortilla-share.png`** (metadatos `og:image` en `index.html`).
+
 ## Publicar la web (GitHub + Vercel + Supabase)
 
 Flujo habitual:
