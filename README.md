@@ -4,7 +4,7 @@ Plataforma de votación y bases del concurso (Vite + React + Supabase).
 
 ## Versión
 
-Ver `package.json` (p. ej. `1.0.6`).
+Ver `package.json` (p. ej. `1.0.7`).
 
 ## Variables de entorno
 
@@ -12,12 +12,43 @@ Copia `.env.example` a `.env` y rellena con el proyecto de Supabase (Dashboard �
 
 ## Supabase (migraciones)
 
-Las migraciones SQL están en `supabase/migrations/`. Para aplicarlas al proyecto remoto:
+Las migraciones SQL están en `supabase/migrations/`.
 
-1. **Supabase CLI** (recomendado): `supabase link` y luego `supabase db push`, o
-2. **Dashboard**: SQL Editor → ejecutar el contenido de las migraciones pendientes en orden.
+### Con Supabase CLI (recomendado)
+
+Desde la raíz del repo:
+
+```bash
+# Si no tienes el CLI instalado globalmente:
+npx supabase db push
+```
+
+La primera vez en un ordenador:
+
+```bash
+npx supabase login
+npx supabase link --project-ref TU_PROJECT_REF
+```
+
+(`TU_PROJECT_REF` está en Supabase → **Settings** → **General** → *Reference ID*.)
+
+Luego, cada vez que añadas migraciones nuevas:
+
+```bash
+npx supabase db push
+```
+
+Confirma con `Y` cuando pregunte si quieres aplicar las migraciones pendientes.
+
+### Sin CLI (Dashboard)
+
+**SQL Editor** → pega y ejecuta el contenido de las migraciones pendientes **en orden** (por nombre de archivo).
 
 Si el esquema ya está al día en producción, no hace falta repetir migraciones antiguas.
+
+### Tabla `suggestions` (buzón de sugerencias)
+
+Si al enviar una sugerencia aparece **`could not find the table 'public.suggestions'`**, aplica la migración con **`npx supabase db push`** o ejecuta manualmente el archivo **`supabase/migrations/20260320120000_suggestions.sql`** en el SQL Editor.
 
 ## Bases del concurso
 

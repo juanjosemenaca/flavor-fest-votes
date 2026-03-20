@@ -42,6 +42,7 @@ import {
   Camera,
   Eye,
   EyeOff,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -168,6 +169,19 @@ const AdminDashboard = () => {
         .select("id, storage_path, is_hidden, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!session,
+  });
+
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ["suggestions"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("suggestions").select("*").order("created_at", { ascending: false });
+      if (error) {
+        if ((error as { code?: string }).code === "PGRST205") return [];
+        throw error;
+      }
       return data ?? [];
     },
     enabled: !!session,
@@ -316,6 +330,18 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ["access-codes"] });
       queryClient.invalidateQueries({ queryKey: ["all-votes"] });
       toast({ title: t("admin.codes.reopenedTitle"), description: t("admin.codes.reopenedDescription") });
+    },
+    onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
+  });
+
+  const deleteSuggestionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("suggestions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["suggestions"] });
+      toast({ title: t("admin.suggestions.deleted") });
     },
     onError: (e: Error) => toast({ title: t("common.error"), description: e.message, variant: "destructive" }),
   });
@@ -692,6 +718,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="teams" className="gap-1"><Users className="h-4 w-4" /> Equipos</TabsTrigger>
             <TabsTrigger value="results" className="gap-1"><Trophy className="h-4 w-4" /> {t("admin.tab.results")}</TabsTrigger>
             <TabsTrigger value="photos" className="gap-1"><Camera className="h-4 w-4" /> Fotos</TabsTrigger>
+            <TabsTrigger value="suggestions" className="gap-1"><MessageSquare className="h-4 w-4" /> {t("admin.tab.suggestions")}</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1"><Settings className="h-4 w-4" /> {t("admin.tab.settings")}</TabsTrigger>
           </TabsList>
 
@@ -1307,6 +1334,48 @@ const AdminDashboard = () => {
                       </div>
                     ))}
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* SUGGESTIONS TAB */}
+          <TabsContent value="suggestions" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-serif">{t("admin.suggestions.title")}</CardTitle>
+                <p className="text-sm text-muted-foreground">{t("admin.suggestions.subtitle")}</p>
+              </CardHeader>
+              <CardContent>
+                {suggestions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("admin.suggestions.empty")}</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {suggestions.map((s) => (
+                      <li
+                        key={s.id}
+                        className="rounded-lg border border-border bg-card p-4"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <time className="text-xs text-muted-foreground" dateTime={s.created_at}>
+                            {new Date(s.created_at).toLocaleString()}
+                          </time>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                            onClick={() => deleteSuggestionMutation.mutate(s.id)}
+                            disabled={deleteSuggestionMutation.isPending}
+                            aria-label={t("admin.suggestions.delete")}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">{s.body}</p>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </CardContent>
             </Card>

@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PrintAccessCodes from "./pages/PrintAccessCodes";
 import NotFound from "./pages/NotFound";
 import Bases from "./pages/Bases";
+import Suggestions from "./pages/Suggestions";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/resultados" element={<Results />} />
           <Route path="/fotos" element={<UploadPhotos />} />
           <Route path="/bases" element={<Bases />} />
+          <Route path="/sugerencias" element={<Suggestions />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/print-codes" element={<PrintAccessCodes />} />

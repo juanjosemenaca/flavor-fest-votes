@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import GildaLogo from "@/components/GildaLogo";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useI18n } from "@/i18n";
-import { Trophy, LogIn, Camera, FileText } from "lucide-react";
+import { Trophy, LogIn, Camera, FileText, MessageSquare } from "lucide-react";
 import { PHOTOS_UPLOAD_ENABLED } from "@/config/features";
 
 const Index = () => {
@@ -100,9 +100,9 @@ const Index = () => {
           <div className="border-t border-border/50 bg-muted/25 px-2 py-2 sm:px-3 sm:py-2.5">
             <div className="flex justify-center px-2 sm:px-3">
               <div className="flex max-w-[min(100%,calc(100%-4rem))] justify-center min-w-0 sm:max-w-[min(100%,calc(100%-5rem))]">
-                <div className="w-full min-w-0 max-w-[23rem] sm:max-w-md">
+                <div className="w-full min-w-0 max-w-[min(100%,28rem)] sm:max-w-2xl">
                   <nav
-                    className="grid w-full grid-cols-3 gap-1 sm:gap-1.5"
+                    className="grid w-full grid-cols-2 gap-1 sm:grid-cols-4 sm:gap-1.5"
                     aria-label={t("nav.primaryNavAria")}
                   >
                     <Link to="/votar" className="flex min-w-0">
@@ -142,6 +142,15 @@ const Index = () => {
                       >
                         <FileText className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                         <span className="min-w-0 truncate">{t("nav.bases")}</span>
+                      </Button>
+                    </Link>
+                    <Link to="/sugerencias" className="flex min-w-0">
+                      <Button
+                        variant="outline"
+                        className="h-8 w-full min-w-0 gap-0.5 border-border bg-background/50 px-1 text-xs hover:bg-muted/80 sm:h-9 sm:gap-1 sm:px-1.5 sm:text-sm"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                        <span className="min-w-0 truncate">{t("nav.suggestions")}</span>
                       </Button>
                     </Link>
                   </nav>

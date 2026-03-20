@@ -43,6 +43,19 @@ const translations: TranslationDict = {
     "nav.photos": "Subir fotos",
     "nav.photosDisabledHint": "Disponible el dia del evento",
     "nav.bases": "Bases y términos",
+    "nav.suggestions": "Buzón sugerencias",
+
+    "suggestions.title": "Buzón de sugerencias",
+    "suggestions.lead": "Tu opinión ayuda a mejorar el concurso y la web. Aquí puedes proponer ideas, mejoras o contar incidencias.",
+    "suggestions.placeholder": "Escribe tu mensaje...",
+    "suggestions.charHint": "Máximo {max} caracteres",
+    "suggestions.submit": "Enviar",
+    "suggestions.sending": "Enviando...",
+    "suggestions.successTitle": "Mensaje enviado",
+    "suggestions.successDescription": "Gracias por tu feedback.",
+    "suggestions.emptyError": "Escribe un mensaje antes de enviar.",
+    "suggestions.tooLongError": "El mensaje es demasiado largo.",
+    "suggestions.privacyNote": "No hace falta identificarse. Solo la organización lee estos mensajes en el panel de administración.",
 
     "bases.title": "Bases y términos del concurso",
     "bases.lead": "Normas y consejos sobre la participación en AITORTILLA, uso de la plataforma digital AITORTILLA.COM, consumo responsable de vino y modelos varios de chantaje a la organización.",
@@ -134,6 +147,7 @@ const translations: TranslationDict = {
     "admin.tab.categories": "Categorias",
     "admin.tab.codes": "Codigos",
     "admin.tab.results": "Resultados",
+    "admin.tab.suggestions": "Sugerencias",
     "admin.tab.settings": "Ajustes",
 
     "admin.dishes.addTitle": "Anadir pintxo",
@@ -187,6 +201,12 @@ const translations: TranslationDict = {
     "admin.photosEmptyHelpSuffix": ".",
     "admin.photosEmptyUploadDisabled": "No hay fotos. La subida desde la web estara activa el dia del evento.",
 
+    "admin.suggestions.title": "Buzón de sugerencias",
+    "admin.suggestions.subtitle": "Mensajes enviados desde la página pública (solo visibles aquí).",
+    "admin.suggestions.empty": "Aún no hay mensajes.",
+    "admin.suggestions.deleted": "Mensaje eliminado",
+    "admin.suggestions.delete": "Eliminar mensaje",
+
     "notFound.message": "Oops! Pagina no encontrada",
     "notFound.returnHome": "Volver al inicio",
   },
@@ -228,6 +248,19 @@ const translations: TranslationDict = {
     "nav.photos": "Pujar fotos",
     "nav.photosDisabledHint": "Disponible el dia de l'esdeveniment",
     "nav.bases": "Bases i termes",
+    "nav.suggestions": "Bústia suggeriments",
+
+    "suggestions.title": "Bústia de suggeriments",
+    "suggestions.lead": "La teva opinió ajuda a millorar el concurs i la web. Aquí pots proposar idees, millores o explicar incidències.",
+    "suggestions.placeholder": "Escriu el teu missatge...",
+    "suggestions.charHint": "Màxim {max} caràcters",
+    "suggestions.submit": "Enviar",
+    "suggestions.sending": "Enviant...",
+    "suggestions.successTitle": "Missatge enviat",
+    "suggestions.successDescription": "Gràcies pel teu comentari.",
+    "suggestions.emptyError": "Escriu un missatge abans d'enviar.",
+    "suggestions.tooLongError": "El missatge és massa llarg.",
+    "suggestions.privacyNote": "No cal identificar-se. Només l'organització llegeix aquests missatges al panell d'administració.",
 
     "bases.title": "Bases i termes del concurs",
     "bases.lead": "Normes i consells sobre la participació a AITORTILLA, ús de la plataforma digital AITORTILLA.COM, consum responsable de vi i models diversos de xantatge a l'organització.",
@@ -319,6 +352,7 @@ const translations: TranslationDict = {
     "admin.tab.categories": "Categories",
     "admin.tab.codes": "Codis",
     "admin.tab.results": "Resultats",
+    "admin.tab.suggestions": "Suggeriments",
     "admin.tab.settings": "Ajustos",
 
     "admin.dishes.addTitle": "Afegir pintxo",
@@ -372,6 +406,12 @@ const translations: TranslationDict = {
     "admin.photosEmptyHelpSuffix": ".",
     "admin.photosEmptyUploadDisabled": "No hi ha fotos. La pujada des del web estara activa el dia de l'esdeveniment.",
 
+    "admin.suggestions.title": "Bústia de suggeriments",
+    "admin.suggestions.subtitle": "Missatges enviats des de la pàgina pública (només visibles aquí).",
+    "admin.suggestions.empty": "Encara no hi ha missatges.",
+    "admin.suggestions.deleted": "Missatge eliminat",
+    "admin.suggestions.delete": "Eliminar missatge",
+
     "notFound.message": "Oops! Pagina no trobada",
     "notFound.returnHome": "Tornar a l'inici",
   },
@@ -414,6 +454,19 @@ const translations: TranslationDict = {
     "nav.photos": "Upload photos",
     "nav.photosDisabledHint": "Available on the day of the event",
     "nav.bases": "Rules and terms",
+    "nav.suggestions": "Suggestion box",
+
+    "suggestions.title": "Suggestion box",
+    "suggestions.lead": "Your feedback helps improve the contest and the website. Share ideas, improvements or issues here.",
+    "suggestions.placeholder": "Write your message...",
+    "suggestions.charHint": "Up to {max} characters",
+    "suggestions.submit": "Send",
+    "suggestions.sending": "Sending...",
+    "suggestions.successTitle": "Message sent",
+    "suggestions.successDescription": "Thanks for your feedback.",
+    "suggestions.emptyError": "Please write a message before sending.",
+    "suggestions.tooLongError": "The message is too long.",
+    "suggestions.privacyNote": "You don't need to sign in. Only organizers read these messages in the admin panel.",
 
     "bases.title": "Contest rules and terms",
     "bases.lead": "Rules and tips on participating in AITORTILLA, use of the AITORTILLA.COM digital platform, responsible wine consumption and assorted models of blackmail toward the organization.",
@@ -505,6 +558,7 @@ const translations: TranslationDict = {
     "admin.tab.categories": "Categories",
     "admin.tab.codes": "Codes",
     "admin.tab.results": "Results",
+    "admin.tab.suggestions": "Suggestions",
     "admin.tab.settings": "Settings",
 
     "admin.dishes.addTitle": "Add pintxo",
@@ -558,6 +612,12 @@ const translations: TranslationDict = {
     "admin.photosEmptyHelpSuffix": ".",
     "admin.photosEmptyUploadDisabled": "No photos yet. Uploads from the website will be available on the day of the event.",
 
+    "admin.suggestions.title": "Suggestion box",
+    "admin.suggestions.subtitle": "Messages sent from the public page (visible only here).",
+    "admin.suggestions.empty": "No messages yet.",
+    "admin.suggestions.deleted": "Message deleted",
+    "admin.suggestions.delete": "Delete message",
+
     "notFound.message": "Oops! Page not found",
     "notFound.returnHome": "Return to home",
   },
@@ -600,6 +660,19 @@ const translations: TranslationDict = {
     "nav.photos": "Argazkiak igo",
     "nav.photosDisabledHint": "Gertaeraren egunean erabilgarri",
     "nav.bases": "Oinarriak eta baldintzak",
+    "nav.suggestions": "Iradokizun postontzia",
+
+    "suggestions.title": "Iradokizun postontzia",
+    "suggestions.lead": "Zure iritziak lehiaketa eta webgunea hobetzen laguntzen du. Ideiak, hobekuntzak edo arazoak idatz ditzakezu hemen.",
+    "suggestions.placeholder": "Idatzi zure mezua...",
+    "suggestions.charHint": "Gehienez {max} karaktere",
+    "suggestions.submit": "Bidali",
+    "suggestions.sending": "Bidaltzen...",
+    "suggestions.successTitle": "Mezua bidalita",
+    "suggestions.successDescription": "Eskerrik asko zure iritziagatik.",
+    "suggestions.emptyError": "Idatzi mezu bat bidali aurretik.",
+    "suggestions.tooLongError": "Mezua luzeegia da.",
+    "suggestions.privacyNote": "Ez da beharrezkoa identifikatzea. Antolakuntzak administrazio panelean bakarrik irakurtzen ditu mezu hauek.",
 
     "bases.title": "Lehiaketaren oinarriak eta baldintzak",
     "bases.lead": "AITORTILLAn parte hartzeari, AITORTILLA.COM plataforma digitalaren erabilerari, ardoaren kontsumo arduratsuari eta antolakuntzaren aurkako xantaia ereduei buruzko arau eta aholkuak.",
@@ -691,6 +764,7 @@ const translations: TranslationDict = {
     "admin.tab.categories": "Kategoriak",
     "admin.tab.codes": "Kodeak",
     "admin.tab.results": "Emaitzak",
+    "admin.tab.suggestions": "Iradokizunak",
     "admin.tab.settings": "Ezarpenak",
 
     "admin.dishes.addTitle": "Pintxoa gehitu",
@@ -743,6 +817,12 @@ const translations: TranslationDict = {
     "admin.photosEmptyHelpPrefix": "Ez dago argazkirik. Partaideek hemendik igo ditzakete: ",
     "admin.photosEmptyHelpSuffix": ".",
     "admin.photosEmptyUploadDisabled": "Ez dago argazkirik. Webean igotzea gertaeraren egunean egongo da aktibo.",
+
+    "admin.suggestions.title": "Iradokizun postontzia",
+    "admin.suggestions.subtitle": "Orri publikotik bidalitako mezuak (hemen bakarrik ikusgarri).",
+    "admin.suggestions.empty": "Oraindik ez dago mezurik.",
+    "admin.suggestions.deleted": "Mezua ezabatuta",
+    "admin.suggestions.delete": "Mezua ezabatu",
 
     "notFound.message": "Oops! Orria ez da aurkitu",
     "notFound.returnHome": "Hasierara itzuli",
