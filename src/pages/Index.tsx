@@ -62,10 +62,10 @@ const Index = () => {
       {/* Header: marca + utilidades · barra de navegación principal */}
       <header className="sticky top-0 z-50 border-b border-border/80 bg-black/90 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.85)] backdrop-blur-md supports-[backdrop-filter]:bg-black/75">
         <div className="container mx-auto max-w-6xl px-4">
-          {/* Fila 1: marca (logo + título) centrada en la web · utilidades fijas a la derecha */}
-          <div className="relative min-h-[4.25rem] py-4 sm:min-h-[4.75rem]">
+          {/* Fila 1: marca + título; en móvil el idioma (y resultados) van debajo para no solaparse */}
+          <div className="relative flex flex-col gap-3 py-4 sm:min-h-[4.75rem] sm:py-4">
             <div className="flex justify-center px-2 sm:px-3">
-              <div className="flex max-w-[min(100%,calc(100%-7.5rem))] items-center gap-3 sm:max-w-[min(100%,calc(100%-9rem))] sm:gap-4">
+              <div className="flex w-full max-w-full items-center gap-3 sm:max-w-[min(100%,calc(100%-9rem))] sm:gap-4">
                 <Link
                   to="/admin"
                   className="inline-flex shrink-0 rounded-md outline-none ring-offset-2 ring-offset-background transition hover:opacity-85 focus-visible:ring-2 focus-visible:ring-primary"
@@ -83,7 +83,7 @@ const Index = () => {
                 </div>
               </div>
             </div>
-            <div className="absolute right-0 top-1/2 z-10 flex max-w-[40%] flex-wrap items-center justify-end gap-1.5 sm:top-1/2 sm:max-w-none sm:gap-2">
+            <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-2 sm:absolute sm:right-0 sm:top-1/2 sm:z-10 sm:w-auto sm:max-w-none sm:-translate-y-1/2 sm:justify-end sm:gap-2 sm:px-0 sm:pr-2">
               <LanguageSelector className="shrink-0" />
               {settings?.results_published && (
                 <Link to="/resultados" className="shrink-0" aria-label={t("nav.results")}>
